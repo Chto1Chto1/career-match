@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>База знаний: подбор профессий</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--ink:#14213d;--muted:#475569;--line:#dbe1ec;--blue:#1d4ed8;--green:#15803d;--greenbg:#dcfce7;--red:#b91c1c;--redbg:#fee2e2;--grey:#64748b;--greybg:#f1f5f9;--amber:#b45309;--amberbg:#fef3c7}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45}
+header{background:#fff;border-bottom:1px solid var(--line);padding:18px 24px}
+header h1{margin:0;font-size:22px}header p{margin:4px 0 0;color:var(--muted);font-size:14px}
+main{max-width:1180px;margin:0 auto;padding:24px 16px 56px;display:flex;flex-direction:column;gap:20px}
+section{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:20px}
+h2{margin:0 0 12px;font-size:17px}
+.row{display:flex;flex-wrap:wrap;gap:14px}
+.f{display:flex;flex-direction:column;gap:5px;flex:1 1 180px}
+label{font-size:13px;font-weight:600}
+input,select,textarea{font:inherit;font-size:15px;padding:9px 11px;border:1px solid #94a3b8;border-radius:8px;background:#fff;color:var(--ink);min-height:42px}
+textarea{resize:vertical}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:9px;min-height:44px;padding:0 18px;border:1px solid var(--blue);background:#fff;color:var(--blue)}
+button.primary{background:var(--blue);color:#fff}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #93c5fd;outline-offset:1px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px;align-items:center}
+.presets span{font-size:13px;color:var(--muted)}
+.note{font-size:13px;color:var(--muted)}
+.alert{padding:10px 12px;border-radius:8px;font-size:14px;margin-top:10px}
+.alert.err{background:var(--redbg);color:#7f1d1d}.alert.warn{background:var(--amberbg);color:#78350f}.alert.ok{background:var(--greenbg);color:#14532d}
+.steps{display:flex;flex-wrap:wrap;gap:8px}
+.step{flex:1 1 130px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--greybg)}
+.step b{display:block;font-size:12px;color:var(--blue)}.step span{font-size:13px}
+.step.on{background:#e0e9ff;border-color:#93b4ff}
+.res{display:flex;flex-direction:column;gap:10px}
+.item{border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.item.top{border:2px solid var(--blue)}
+.head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.title{font-weight:700}
+.badge{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600}
+.b-ok{background:var(--greenbg);color:#14532d}.b-bad{background:var(--redbg);color:#7f1d1d}.b-no{background:var(--greybg);color:#334155}
+.bar{position:relative;height:14px;background:#e2e8f0;border-radius:7px;margin:10px 0 6px;overflow:visible}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+.bar u{position:absolute;top:-4px;bottom:-4px;width:2px;background:#0f172a;text-decoration:none}
+.calc{font-size:13px;color:var(--muted)}
+.reason{font-size:14px;margin-top:4px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:8px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+tr.fire td{background:#f0fdf4}tr.over td{background:#fffbeb}
+code{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+.scroll{overflow-x:auto}
+svg text{font-family:inherit}
+details summary{cursor:pointer;font-weight:600}
+pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font-size:12px}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:13px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:22px;height:0;border-top:3px solid;vertical-align:middle;margin-right:6px}
+</style>
+</head>
+<body>
+<header>
+  <h1>База знаний: система подбора профессий</h1>
+  <p>Продукционная модель «ЕСЛИ → ТО». Страница работает без интернета и без установки: логика - тот же JavaScript, что в файле 2_knowledge_base.js.</p>
+</header>
+<main>
+  <section aria-labelledby="h-in">
+    <h2 id="h-in">1. Профиль пользователя</h2>
+    <div class="presets">
+      <span>Готовые примеры:</span>
+      <button type="button" data-preset="0">Пользователь 1 (опыт 5 лет)</button>
+      <button type="button" data-preset="1">Пользователь 2 (без опыта)</button>
+    </div>
+    <form id="form" class="row" autocomplete="off">
+      <div class="f"><label for="exp">Опыт работы, лет</label><input id="exp" type="number" step="1"></div>
+      <div class="f"><label for="edu">Образование</label>
+        <select id="edu"><option value="school">школа</option><option value="college">колледж</option><option value="bachelor">бакалавриат</option><option value="master">магистратура</option><option value="phd">аспирантура</option></select></div>
+      <div class="f"><label for="sal">Желаемая зарплата от, ₽</label><input id="sal" type="number" step="1000"></div>
+      <div class="f" style="flex-basis:100%"><label for="skills">Навыки через запятую (можно синонимами: Python3, Питон, Общение)</label>
+        <textarea id="skills" rows="2"></textarea></div>
+      <div style="flex-basis:100%"><button class="primary" type="submit">Подобрать профессии</button></div>
+    </form>
+    <div id="msgs"></div>
+  </section>
+
+  <section aria-labelledby="h-steps">
+    <h2 id="h-steps">2. Как система пришла к результату</h2>
+    <div class="steps" id="steps"></div>
+  </section>
+
+  <section aria-labelledby="h-res">
+    <h2 id="h-res">3. Рейтинг профессий</h2>
+    <p class="note">Полоса - итоговый балл 0–100, чёрная черта - порог рекомендации (<span id="thr"></span>). Балл = навыки + поправка сравнения + надбавка за правило recommend.</p>
+    <div class="res" id="res"></div>
+  </section>
+
+  <section aria-labelledby="h-graph">
+    <h2 id="h-graph">4. Схема вывода: правила → профессии</h2>
+    <div class="scroll"><svg id="graph" role="img" aria-label="Граф: слева правила базы знаний, справа профессии, линии показывают какое правило к какой профессии относится" style="width:100%;min-width:640px;height:auto"></svg></div>
+    <div class="legend">
+      <span><i style="border-color:#15803d"></i>recommend применено</span>
+      <span><i style="border-color:#b91c1c"></i>exclude применено</span>
+      <span><i style="border-color:#94a3b8;border-top-style:dashed"></i>сработало, но перекрыто более сильным правилом</span>
+      <span><i style="border-color:#cbd5e1;border-top-style:dotted"></i>не сработало</span>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-rules">
+    <h2 id="h-rules">5. Правила базы знаний и их срабатывание</h2>
+    <div class="scroll"><table id="rules"></table></div>
+    <p class="note">Конфликт решает приоритет: побеждает правило с большим числом; при равенстве exclude сильнее recommend.</p>
+  </section>
+
+  <section aria-labelledby="h-sql">
+    <h2 id="h-sql">6. Запись в журнал RECOMMENDATIONS</h2>
+    <details><summary>Показать готовый INSERT-запрос</summary><pre id="sql"></pre></details>
+  </section>
+</main>
+
+<script>
+// =====================================================================
+// Система подбора профессий. База знаний на JavaScript: факты, правила
+// ЕСЛИ → ТО, разрешение конфликтов и рейтинг. Данные скопированы из
+// 1_database.sql, база данных для запуска не нужна. Установка не нужна:
+//   • браузер: F12 -> вкладка Console -> вставить весь файл -> Enter;
+//   • онлайн-редактор JavaScript / Node.js (например, onecompiler.com);
+//   • Node.js: node 2_knowledge_base.js
+// =====================================================================
+
+// ---------- Параметры модели (CONFIG) ----------
+const CONFIG = {
+  BONUS_RECOMMEND: 5,   // надбавка к баллу, если победило правило recommend
+  MIN_SCORE: 40,        // порог: профессия с баллом ниже не рекомендуется
+  SCORE_MIN: 0,         // нижняя граница итогового балла
+  SCORE_MAX: 100        // верхняя граница итогового балла
+};
+
+// ---------- Данные: копия тестовых данных из 1_database.sql ----------
+const SKILLS = [
+  { skl_id: 1,  name: 'Python',        aliases: 'Питон, Python3, Py' },
+  { skl_id: 2,  name: 'Django',        aliases: null },
+  { skl_id: 3,  name: 'PostgreSQL',    aliases: 'Postgres, PgSQL' },
+  { skl_id: 4,  name: 'SQL',           aliases: null },
+  { skl_id: 5,  name: 'Git',           aliases: 'Гит' },
+  { skl_id: 6,  name: 'Docker',        aliases: 'Докер' },
+  { skl_id: 7,  name: 'JavaScript',    aliases: 'JS, Java Script' },
+  { skl_id: 8,  name: 'React',         aliases: 'ReactJS, React.js' },
+  { skl_id: 9,  name: 'HTML/CSS',      aliases: 'HTML, CSS' },
+  { skl_id: 10, name: 'Excel',         aliases: 'Эксель, MS Excel' },
+  { skl_id: 11, name: 'Statistics',    aliases: 'Статистика' },
+  { skl_id: 12, name: 'Testing',       aliases: 'Тестирование, QA' },
+  { skl_id: 13, name: 'Communication', aliases: 'Общение, Коммуникабельность' },
+  { skl_id: 14, name: 'Teamwork',      aliases: 'Командная работа, Работа в команде' }
+];
+
+const PROFESSIONS = [
+  { prof_id: 1, title: 'Python Developer',        avg_sal: 200000 },
+  { prof_id: 2, title: 'Data Analyst',            avg_sal: 160000 },
+  { prof_id: 3, title: 'Frontend Developer',      avg_sal: 180000 },
+  { prof_id: 4, title: 'Project Manager',         avg_sal: 190000 },
+  { prof_id: 5, title: 'QA Engineer',             avg_sal: 120000 },
+  { prof_id: 6, title: 'Junior Python Developer', avg_sal: 90000 }
+];
+
+// [prof_id, skl_id, weight, is_req]
+const REQUIREMENTS = [
+  [1, 1, 5, true], [1, 2, 4, false], [1, 3, 3, false], [1, 5, 2, false], [1, 6, 3, false], [1, 13, 1, false],
+  [2, 4, 5, true], [2, 1, 3, false], [2, 11, 4, false], [2, 10, 2, false], [2, 13, 1, false],
+  [3, 7, 5, true], [3, 8, 4, false], [3, 9, 4, true], [3, 5, 2, false],
+  [4, 13, 5, true], [4, 14, 4, true], [4, 10, 2, false],
+  [5, 12, 5, true], [5, 4, 2, false], [5, 1, 2, false], [5, 5, 1, false],
+  [6, 1, 5, true], [6, 5, 2, false], [6, 4, 2, false]
+].map(([prof_id, skl_id, weight, is_req]) => ({ prof_id, skl_id, weight, is_req }));
+
+// Правила сравнения (таблица COMPARISONS)
+const COMPARISONS = [
+  { rul_id: 1, prof_id: 1, cond_type: 'exp_years', operator: '>=', value: '3', action: 'score += 5' },
+  { rul_id: 2, prof_id: 1, cond_type: 'exp_years', operator: '<',  value: '1', action: 'score -= 10' },
+  { rul_id: 3, prof_id: 6, cond_type: 'exp_years', operator: '>',  value: '2', action: 'score -= 30' }
+];
+
+// Правила «ЕСЛИ -> ТО» (таблица KNOWLEDGE)
+const KNOWLEDGE = [
+  { rul_id: 1, name: 'Junior Python',                   condition: 'exp_years < 1 AND has_skill = Python',  conclusion: 'recommend: Junior Python Developer', priority: 10 },
+  { rul_id: 2, name: 'Опытный Python-разработчик',      condition: 'exp_years >= 3 AND has_skill = Python', conclusion: 'recommend: Python Developer',        priority: 10 },
+  { rul_id: 3, name: 'Слишком опытный для Junior',      condition: 'exp_years >= 3',                        conclusion: 'exclude: Junior Python Developer',   priority: 20 },
+  { rul_id: 4, name: 'Python и SQL ведут в аналитику',  condition: 'has_skill = Python AND has_skill = SQL', conclusion: 'recommend: Data Analyst',            priority: 8 },
+  { rul_id: 5, name: 'Бэкенд-опыт - не аналитик',       condition: 'exp_years >= 3 AND has_skill = Django', conclusion: 'exclude: Data Analyst',              priority: 12 },
+  { rul_id: 6, name: 'Django ведёт в Python Developer', condition: 'has_skill = Django',                    conclusion: 'recommend: Python Developer',        priority: 5 }
+];
+
+// Правила проверки ввода (таблица VALIDATIONS)
+const VALIDATIONS = [
+  { field: 'email',     condition: 'REGEXP:^[^@ ]+@[^@ ]+[.][^@ ]+$',       err: 'Некорректный email' },
+  { field: 'exp_years', condition: 'RANGE:0..60',                           err: 'Опыт должен быть от 0 до 60 лет' },
+  { field: 'edu_level', condition: 'IN:school,college,bachelor,master,phd', err: 'Недопустимый уровень образования' },
+  { field: 'sal_min',   condition: 'RANGE:0..10000000',                     err: 'Недопустимая минимальная зарплата' }
+];
+
+// Профили (PROFILES) и цели (GOALS) пользователей
+const USERS = [
+  { usr_id: 1, email: 'ivan@mail.ru', exp_years: 5, edu_level: 'master',
+    skills: 'Python3, Django, Postgres, SQL, Git, Общение', sal_min: 150000 },
+  { usr_id: 2, email: 'anna@mail.ru', exp_years: 0, edu_level: 'bachelor',
+    skills: 'python, SQL, Git, Excel, Statistics, Teamwork, Figma', sal_min: 80000 }
+];
+
+// ---------- Слой 0. R0_INPUT: проверка ввода (VALIDATIONS) ----------
+function validateUser(user) {
+  return VALIDATIONS.filter((v) => {
+    const val = user[v.field];
+    if (val === undefined || val === null) return false;
+    // числовые поля: строка, NaN и бесконечность - это ошибка ввода, а не допустимое значение
+    if (v.condition.startsWith('RANGE:') && (typeof val !== 'number' || !Number.isFinite(val))) return true;
+    const [kind, ...rest] = v.condition.split(':');
+    const spec = rest.join(':');
+    if (kind === 'REGEXP') return !new RegExp(spec).test(String(val));
+    if (kind === 'RANGE') { const [lo, hi] = spec.split('..').map(parseFloat); return val < lo || val > hi; }
+    if (kind === 'IN') return !spec.split(',').includes(String(val));
+    return false;
+  }).map((v) => v.err);
+}
+
+// ---------- Слой 1. Факты ----------
+// «Python3», «python», «Питон» -> один и тот же ключ: нижний регистр, без пробелов
+const norm = (s) => String(s).toLowerCase().replace(/\s+/g, '');
+
+// Навык пользователя -> каноническое название из SKILLS (по имени или синониму)
+function normalizeSkills(text) {
+  text = text || '';   // нет навыков -> пустой набор, а не ошибка
+  const found = new Set();
+  text.split(',').map(norm).filter(Boolean).forEach((token) => {
+    SKILLS.forEach((s) => {
+      const names = [norm(s.name)].concat(s.aliases ? s.aliases.split(',').map(norm) : []);
+      if (names.includes(token)) found.add(s.skl_id);
+    });
+  });
+  return found; // множество skl_id
+}
+
+// Навыки из профиля, которых нет в справочнике SKILLS
+function unknownSkills(text) {
+  return text.split(',').map((t) => t.trim()).filter(Boolean).filter((t) =>
+    !SKILLS.some((s) => [norm(s.name)].concat(s.aliases ? s.aliases.split(',').map(norm) : []).includes(norm(t))));
+}
+
+function computeFacts(user) {
+  const skillIds = normalizeSkills(user.skills);
+  return {
+    exp_years: user.exp_years,
+    edu_level: user.edu_level,
+    has_skill: SKILLS.filter((s) => skillIds.has(s.skl_id)).map((s) => s.name),
+    skillIds
+  };
+}
+
+// ---------- Слой 2. Условия правил: «A AND B AND C» ----------
+function parseCondition(text) {
+  return text.split(' AND ').map((atom) => {
+    const m = atom.trim().match(/^(\S+)\s+(!=|<=|>=|=|<|>)\s+(.+)$/);
+    if (!m) throw new Error('Не разобрано условие: ' + atom);
+    return { fact: m[1], op: m[2], val: m[3].trim() };
+  });
+}
+
+const isNum = (v) => /^-?\d+(\.\d+)?$/.test(v);
+
+function testAtom(facts, { fact, op, val }) {
+  const values = [].concat(facts[fact] === undefined ? [] : facts[fact]);
+  return values.some((f) => {
+    if (isNum(val)) {
+      if (typeof f !== 'number') return false;
+      const v = parseFloat(val);
+      return { '=': f === v, '!=': f !== v, '<': f < v, '<=': f <= v, '>': f > v, '>=': f >= v }[op];
+    }
+    if (typeof f !== 'string') return false;
+    const a = f.toLowerCase(), b = val.toLowerCase();
+    return op === '=' ? a === b : op === '!=' ? a !== b : false;
+  });
+}
+
+const allTrue = (facts, cond) => parseCondition(cond).every((a) => testAtom(facts, a));
+
+// Контроль самих правил: ошибка эксперта видна сразу
+function checkRules() {
+  const errs = [];
+  const titles = PROFESSIONS.map((p) => p.title);
+  KNOWLEDGE.forEach((k) => {
+    const target = k.conclusion.split(':').slice(1).join(':').trim();
+    if (!titles.includes(target)) errs.push(`K${k.rul_id}: неизвестная профессия в выводе`);
+    parseCondition(k.condition).forEach((a) => {
+      if (!['exp_years', 'edu_level', 'has_skill'].includes(a.fact)) errs.push(`K${k.rul_id}: неизвестный факт ${a.fact}`);
+      if (a.fact === 'has_skill' && !SKILLS.some((s) => s.name === a.val)) errs.push(`K${k.rul_id}: навык ${a.val} отсутствует в справочнике`);
+    });
+  });
+  COMPARISONS.forEach((c) => {
+    if (!/^score [+-]= \d+(\.\d+)?$/.test(c.action)) errs.push(`C${c.rul_id}: неверный формат действия`);
+  });
+  return errs;
+}
+
+// ---------- Слой 3. Сработавшие правила и разрешение конфликтов ----------
+function firedRules(facts) {
+  return KNOWLEDGE.filter((k) => allTrue(facts, k.condition)).map((k) => {
+    const [kind, ...rest] = k.conclusion.split(':');
+    return { ...k, kind: kind.trim(), target: rest.join(':').trim() };
+  });
+}
+
+// Для каждой профессии побеждает правило с наибольшим priority;
+// при равенстве приоритетов exclude сильнее recommend
+function resolveConflicts(fired) {
+  const winners = {};
+  fired.slice()
+    .sort((a, b) => (b.priority - a.priority) ||
+                    ((b.kind === 'exclude') - (a.kind === 'exclude')) ||
+                    (a.rul_id - b.rul_id))
+    .forEach((r) => { if (!winners[r.target]) winners[r.target] = r; });
+  return winners;
+}
+
+// Правила сравнения COMPARISONS: суммарная поправка к баллу профессии
+function comparisonDelta(facts, prof_id) {
+  return COMPARISONS.filter((c) => c.prof_id === prof_id)
+    .filter((c) => testAtom(facts, { fact: c.cond_type, op: c.operator, val: c.value }))
+    .reduce((sum, c) => {
+      const m = c.action.match(/^score ([+-])= (\d+(?:\.\d+)?)$/);
+      return m ? sum + (m[1] === '-' ? -1 : 1) * parseFloat(m[2]) : sum;
+    }, 0);
+}
+
+// ---------- Слой 4-5. Баллы, фильтры, рейтинг ----------
+const round4 = (x) => Math.round(x * 1e4) / 1e4;
+
+function recommend(user) {
+  const facts = computeFacts(user);
+  const fired = firedRules(facts);
+  const winners = resolveConflicts(fired);
+
+  const rows = PROFESSIONS.map((p) => {
+    const reqs = REQUIREMENTS.filter((r) => r.prof_id === p.prof_id);
+    const totalW = reqs.reduce((s, r) => s + r.weight, 0);
+    const gotW = reqs.filter((r) => facts.skillIds.has(r.skl_id)).reduce((s, r) => s + r.weight, 0);
+    const reqCnt = reqs.filter((r) => r.is_req).length;
+    const reqGot = reqs.filter((r) => r.is_req && facts.skillIds.has(r.skl_id)).length;
+
+    const base = round4(totalW > 0 ? 100 * gotW / totalW : 0);       // R1_SKILLS
+    const delta = comparisonDelta(facts, p.prof_id);                  // R3_COMPARE
+    const w = winners[p.title];
+    const bonus = w && w.kind === 'recommend' ? CONFIG.BONUS_RECOMMEND : 0; // R4_KNOWLEDGE
+    const score = round4(Math.min(CONFIG.SCORE_MAX, Math.max(CONFIG.SCORE_MIN, base + delta + bonus)));
+    const reqOk = reqCnt === reqGot;                                   // R2_MANDATORY
+    const matched = reqOk && score >= CONFIG.MIN_SCORE;               // + порог MIN_SCORE
+    const byRule = !!(w && w.kind === 'exclude');                     // R4_KNOWLEDGE (exclude)
+    const bySalary = user.sal_min != null && p.avg_sal != null && p.avg_sal < user.sal_min; // R5_SALARY
+    const filtered = byRule || bySalary;
+    return { usr_id: user.usr_id, prof_id: p.prof_id, title: p.title, gotW, totalW,
+             base, delta, bonus, score, matched, filtered, rank_pos: null,
+             reqOk, byRule, bySalary, wRul: w ? w.rul_id : null };
+  });
+
+  // R7_RANK: место получают подходящие и не отсеянные, по убыванию балла
+  rows.filter((r) => r.matched && !r.filtered)
+      .sort((a, b) => (b.score - a.score) || (a.prof_id - b.prof_id))
+      .forEach((r, i) => { r.rank_pos = i + 1; });
+
+  // Причина результата (объяснение для пользователя)
+  rows.forEach((r) => {
+    r.reason = r.byRule ? 'отсеяна правилом K' + r.wRul
+             : r.bySalary ? 'зарплата профессии ниже желаемой'
+             : !r.reqOk ? 'нет обязательного навыка'
+             : !r.matched ? 'балл ниже порога ' + CONFIG.MIN_SCORE
+             : 'рекомендована, место ' + r.rank_pos;
+  });
+
+  return { facts, fired, winners, rows };
+}
+
+// ---------- Запись результата: INSERT-запросы для RECOMMENDATIONS ----------
+function toSql(rows) {
+  const v = rows.map((r) => `(${r.usr_id}, ${r.prof_id}, ${r.score.toFixed(4)}, ${r.matched ? 1 : 0}, ` +
+                            `${r.filtered ? 1 : 0}, ${r.rank_pos === null ? 'NULL' : r.rank_pos})`);
+  return 'INSERT INTO RECOMMENDATIONS (usr_id, prof_id, score, matched, filtered, rank_pos) VALUES\n ' +
+         v.join(',\n ') + ';';
+}
+
+
+</script>
+<script>
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) { return String(s).replace(/[&<>"']/g, function (c) { return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); };
+  var fmt = function (x) { return (Math.round(x * 100) / 100).toString().replace('.', ','); };
+
+  function setForm(u) { $('exp').value = u.exp_years; $('edu').value = u.edu_level; $('sal').value = u.sal_min; $('skills').value = u.skills; }
+  function readForm() {
+    var e = $('exp').value, s = $('sal').value;
+    return { usr_id: window.__uid || 0, exp_years: e === '' ? NaN : Number(e), edu_level: $('edu').value,
+             sal_min: s === '' ? NaN : Number(s), skills: $('skills').value };
+  }
+
+  function run() {
+    var user = readForm(), msgs = '';
+    var ruleErrors = checkRules();
+    if (ruleErrors.length) msgs += '<div class="alert err">Ошибки в правилах: ' + esc(ruleErrors.join('; ')) + '</div>';
+    var bad = validateUser(user);
+    if (bad.length) {
+      msgs += '<div class="alert err"><b>Подбор не выполнен (правило R0_INPUT).</b> ' + esc(bad.join('; ')) + '</div>';
+      $('msgs').innerHTML = msgs;
+      ['steps', 'res', 'rules', 'sql'].forEach(function (id) { $(id).innerHTML = ''; });
+      $('graph').innerHTML = '';
+      return;
+    }
+    var unk = unknownSkills(user.skills);
+    if (unk.length) msgs += '<div class="alert warn">Нет в справочнике навыков, в выводе не участвуют: <b>' + esc(unk.join(', ')) + '</b>. Эксперту нужно дополнить справочник SKILLS.</div>';
+    else msgs += '<div class="alert ok">Ввод корректен, все навыки найдены в справочнике.</div>';
+    $('msgs').innerHTML = msgs;
+
+    var res = recommend(user);
+    var rank = res.rows.filter(function (r) { return r.rank_pos !== null; }).length;
+    var overridden = res.fired.filter(function (f) { return res.winners[f.target] !== f; }).length;
+    var excl = res.rows.filter(function (r) { return r.filtered; }).length;
+    var steps = [
+      ['R0 · ввод', 'ошибок нет'],
+      ['R1 · факты', res.facts.has_skill.length + ' навыков: ' + (res.facts.has_skill.join(', ') || '-')],
+      ['R3–R4 · правила', 'сработало ' + res.fired.length + ' из ' + KNOWLEDGE.length],
+      ['R6 · конфликты', overridden ? 'перекрыто правил: ' + overridden : 'конфликтов нет'],
+      ['R2, R5 · допуск и зарплата', 'отсеяно: ' + excl],
+      ['R7 · рейтинг', 'в рейтинге: ' + rank]
+    ];
+    $('steps').innerHTML = steps.map(function (s) { return '<div class="step on"><b>' + esc(s[0]) + '</b><span>' + esc(s[1]) + '</span></div>'; }).join('');
+
+    $('thr').textContent = CONFIG.MIN_SCORE;
+    var rows = res.rows.slice().sort(function (a, b) {
+      return ((a.rank_pos === null) - (b.rank_pos === null)) || (a.rank_pos - b.rank_pos) || (b.score - a.score);
+    });
+    $('res').innerHTML = rows.map(function (r) {
+      var cls = r.rank_pos !== null ? 'b-ok' : r.filtered ? 'b-bad' : 'b-no';
+      var lab = r.rank_pos !== null ? 'Место ' + r.rank_pos : r.filtered ? 'Отсеяна' : 'Не подходит';
+      var col = r.rank_pos !== null ? '#15803d' : r.filtered ? '#b91c1c' : '#64748b';
+      var d = r.delta ? (r.delta > 0 ? ' + ' : ' − ') + Math.abs(r.delta) + ' (сравнение)' : '';
+      var b = r.bonus ? ' + ' + r.bonus + ' (recommend)' : '';
+      return '<div class="item' + (r.rank_pos === 1 ? ' top' : '') + '"><div class="head"><span class="title">' + esc(r.title) +
+        '</span><span class="badge ' + cls + '">' + lab + ' · ' + fmt(r.score) + '</span></div>' +
+        '<div class="bar" role="img" aria-label="Балл ' + fmt(r.score) + ' из 100"><i style="width:' + r.score + '%;background:' + col + '"></i><u style="left:' + CONFIG.MIN_SCORE + '%"></u></div>' +
+        '<div class="calc">Навыки: вес ' + r.gotW + ' из ' + r.totalW + ' → ' + fmt(r.base) + d + b + ' = ' + fmt(r.score) + (r.base + r.delta + r.bonus > 100 ? ' (ограничено 100)' : '') + '</div>' +
+        '<div class="reason"><b>Причина:</b> ' + esc(r.reason) + '</div></div>';
+    }).join('');
+
+    $('rules').innerHTML = '<tr><th>Код</th><th>ЕСЛИ</th><th>ТО</th><th>Приоритет</th><th>Для этого пользователя</th></tr>' +
+      KNOWLEDGE.map(function (k) {
+        var f = res.fired.filter(function (x) { return x.rul_id === k.rul_id; })[0], st, cls = '';
+        if (!f) st = 'не сработало';
+        else if (res.winners[f.target] === f) { st = 'применено'; cls = 'fire'; }
+        else { st = 'перекрыто правилом K' + res.winners[f.target].rul_id; cls = 'over'; }
+        return '<tr class="' + cls + '"><td><b>K' + k.rul_id + '</b></td><td><code>' + esc(k.condition) + '</code></td><td>' + esc(k.conclusion) + '</td><td>' + k.priority + '</td><td>' + st + '</td></tr>';
+      }).join('');
+
+    drawGraph(res);
+    $('sql').textContent = toSql(res.rows.map(function (r) { return Object.assign({}, r, { usr_id: user.usr_id || 0 }); }));
+  }
+
+  function drawGraph(res) {
+    var NW = 330, NH = 54, GAP = 12, X1 = 0, X2 = 620, W = X2 + 270;
+    var n = Math.max(KNOWLEDGE.length, PROFESSIONS.length), H = n * (NH + GAP);
+    var rowOf = {}, byTitle = {};
+    PROFESSIONS.forEach(function (p, i) { byTitle[p.title] = i; });
+    var s = '<defs><marker id="ar" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L8,4 L0,8z" fill="context-stroke"/></marker></defs>';
+    var firedIds = {}; res.fired.forEach(function (f) { firedIds[f.rul_id] = f; });
+    var edges = '', nodes = '';
+    KNOWLEDGE.forEach(function (k, i) {
+      var f = firedIds[k.rul_id], y = i * (NH + GAP), target = k.conclusion.split(':').slice(1).join(':').trim();
+      var j = byTitle[target]; if (j === undefined) return;
+      var applied = f && res.winners[f.target] === f, kind = k.conclusion.split(':')[0].trim();
+      var color = !f ? '#cbd5e1' : !applied ? '#94a3b8' : kind === 'exclude' ? '#b91c1c' : '#15803d';
+      var dash = !f ? '2 5' : !applied ? '7 5' : '0', sw = applied ? 3 : 2;
+      var x1 = X1 + NW, y1 = y + NH / 2, x2 = X2, y2 = j * (NH + GAP) + NH / 2, mx = (x1 + x2) / 2;
+      edges += '<path d="M' + x1 + ',' + y1 + ' C' + mx + ',' + y1 + ' ' + mx + ',' + y2 + ' ' + (x2 - 2) + ',' + y2 + '" fill="none" stroke="' + color + '" stroke-width="' + sw + '" stroke-dasharray="' + dash + '" marker-end="url(#ar)"/>';
+      var fill = !f ? '#f8fafc' : applied ? (kind === 'exclude' ? '#fee2e2' : '#dcfce7') : '#fffbeb';
+      var cond = k.condition.length > 44 ? k.condition.slice(0, 43) + '…' : k.condition;
+      nodes += '<g><title>' + esc('K' + k.rul_id + ': ЕСЛИ ' + k.condition + ' ТО ' + k.conclusion) + '</title><rect x="' + X1 + '" y="' + y + '" width="' + NW + '" height="' + NH + '" rx="9" fill="' + fill + '" stroke="' + color + '" stroke-width="1.5"/>' +
+        '<text x="12" y="' + (y + 22) + '" font-size="13" font-weight="700" fill="#14213d">K' + k.rul_id + ' · ' + esc(kind) + ' · приоритет ' + k.priority + '</text>' +
+        '<text x="12" y="' + (y + 42) + '" font-size="12" fill="#334155">' + esc(cond) + '</text></g>';
+    });
+    PROFESSIONS.forEach(function (p, j) {
+      var r = res.rows.filter(function (x) { return x.prof_id === p.prof_id; })[0], y = j * (NH + GAP);
+      var fill = r.rank_pos !== null ? '#dcfce7' : r.filtered ? '#fee2e2' : '#f1f5f9';
+      var st = r.rank_pos !== null ? 'Место ' + r.rank_pos : r.filtered ? 'отсеяна' : 'не подходит';
+      nodes += '<g><rect x="' + X2 + '" y="' + y + '" width="250" height="' + NH + '" rx="9" fill="' + fill + '" stroke="#64748b" stroke-width="1.5"/>' +
+        '<text x="' + (X2 + 12) + '" y="' + (y + 22) + '" font-size="13" font-weight="700" fill="#14213d">' + esc(p.title) + '</text>' +
+        '<text x="' + (X2 + 12) + '" y="' + (y + 42) + '" font-size="12" fill="#334155">' + fmt(r.score) + ' · ' + st + '</text></g>';
+    });
+    var g = $('graph');
+    g.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+    g.innerHTML = s + edges + nodes;
+  }
+
+  document.querySelectorAll('[data-preset]').forEach(function (b) {
+    b.addEventListener('click', function () { var u = USERS[Number(b.getAttribute('data-preset'))]; window.__uid = u.usr_id; setForm(u); run(); });
+  });
+  $('form').addEventListener('submit', function (e) { e.preventDefault(); run(); });
+  window.__uid = USERS[0].usr_id; setForm(USERS[0]); run();
+})();
+</script>
+</body>
+</html>
