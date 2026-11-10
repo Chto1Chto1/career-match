@@ -1,0 +1,153 @@
+// Система подбора профессий. Вставьте этот код на https://dbdiagram.io/d (слева), диаграмма появится справа.
+
+Table COMPARISONS {
+  rul_id int [pk, increment]
+  prof_id int [not null]
+  cond_type varchar(50) [not null]
+  operator varchar(20) [not null]
+  value text [not null]
+  action varchar(100) [not null]
+  upd_by int
+}
+
+Table EXPERTS {
+  exp_id int [pk, increment]
+  name varchar(255) [not null]
+  role varchar(100)
+  email varchar(255) [unique]
+  created_at datetime [not null]
+}
+
+Table GOALS {
+  goal_id int [pk, increment]
+  usr_id int [not null]
+  sal_min decimal(12,2)
+  sal_max decimal(12,2)
+  w_format varchar(50)
+  w_hours varchar(50)
+  location varchar(255)
+}
+
+Table KNOWLEDGE {
+  rul_id int [pk, increment]
+  name varchar(255) [not null]
+  "condition" text [not null]
+  conclusion text [not null]
+  priority int [not null]
+  upd_by int
+}
+
+Table PROFESSIONS {
+  prof_id int [pk, increment]
+  title varchar(255) [unique, not null]
+  category varchar(100)
+  descr text
+  avg_sal decimal(12,2)
+  std_src varchar(255)
+  upd_by int
+  upd_at datetime [not null]
+}
+
+Table PROFILES {
+  prfl_id int [pk, increment]
+  usr_id int [not null]
+  exp_years int
+  edu_level varchar(100)
+  raw_input text
+  skills text
+  interests text
+  upd_at datetime [not null]
+}
+
+Table RECOMMENDATIONS {
+  log_id int [pk, increment]
+  usr_id int
+  prof_id int
+  score decimal(10,4)
+  matched boolean [not null]
+  filtered boolean [not null]
+  rank_pos int
+  feedback text
+  created_at datetime [not null]
+}
+
+Table REPORTS {
+  tpl_id int [pk, increment]
+  name varchar(255) [not null]
+  structure text
+  disp_rules text
+  upd_by int
+}
+
+Table REQUIREMENTS {
+  prof_id int [pk]
+  skl_id int [pk]
+  weight decimal(5,2) [not null]
+  is_req boolean [not null]
+  upd_by int
+  upd_at datetime [not null]
+}
+
+Table SKILLS {
+  skl_id int [pk, increment]
+  name varchar(255) [unique, not null]
+  type varchar(50)
+  aliases text
+}
+
+Table USERS {
+  usr_id int [pk, increment]
+  email varchar(255) [unique, not null]
+  pass_hash varchar(255) [not null]
+  created_at datetime [not null]
+  status varchar(50) [not null]
+}
+
+Table VALIDATIONS {
+  rul_id int [pk, increment]
+  field_name varchar(100) [not null]
+  "condition" text [not null]
+  err_msg text
+  upd_by int
+}
+
+TableGroup "Пользователи" {
+  USERS
+  PROFILES
+  GOALS
+}
+
+TableGroup "Справочники" {
+  PROFESSIONS
+  SKILLS
+  REQUIREMENTS
+}
+
+TableGroup "Правила" {
+  VALIDATIONS
+  COMPARISONS
+  KNOWLEDGE
+}
+
+TableGroup "Администрирование" {
+  EXPERTS
+}
+
+TableGroup "Логи" {
+  RECOMMENDATIONS
+  REPORTS
+}
+
+Ref: COMPARISONS.prof_id > PROFESSIONS.prof_id [delete: cascade]
+Ref: COMPARISONS.upd_by > EXPERTS.exp_id [delete: set null]
+Ref: GOALS.usr_id > USERS.usr_id [delete: cascade]
+Ref: KNOWLEDGE.upd_by > EXPERTS.exp_id [delete: set null]
+Ref: PROFESSIONS.upd_by > EXPERTS.exp_id [delete: set null]
+Ref: PROFILES.usr_id > USERS.usr_id [delete: cascade]
+Ref: RECOMMENDATIONS.prof_id > PROFESSIONS.prof_id [delete: set null]
+Ref: RECOMMENDATIONS.usr_id > USERS.usr_id [delete: set null]
+Ref: REPORTS.upd_by > EXPERTS.exp_id [delete: set null]
+Ref: REQUIREMENTS.skl_id > SKILLS.skl_id [delete: cascade]
+Ref: REQUIREMENTS.prof_id > PROFESSIONS.prof_id [delete: cascade]
+Ref: REQUIREMENTS.upd_by > EXPERTS.exp_id [delete: set null]
+Ref: VALIDATIONS.upd_by > EXPERTS.exp_id [delete: set null]

@@ -1,0 +1,113 @@
+erDiagram
+    PROFESSIONS ||--o{ COMPARISONS : "prof_id"
+    EXPERTS ||--o{ COMPARISONS : "upd_by"
+    USERS ||--o{ GOALS : "usr_id"
+    EXPERTS ||--o{ KNOWLEDGE : "upd_by"
+    EXPERTS ||--o{ PROFESSIONS : "upd_by"
+    USERS ||--o{ PROFILES : "usr_id"
+    PROFESSIONS ||--o{ RECOMMENDATIONS : "prof_id"
+    USERS ||--o{ RECOMMENDATIONS : "usr_id"
+    EXPERTS ||--o{ REPORTS : "upd_by"
+    SKILLS ||--o{ REQUIREMENTS : "skl_id"
+    PROFESSIONS ||--o{ REQUIREMENTS : "prof_id"
+    EXPERTS ||--o{ REQUIREMENTS : "upd_by"
+    EXPERTS ||--o{ VALIDATIONS : "upd_by"
+    COMPARISONS {
+        INT rul_id PK
+        INT prof_id FK
+        VARCHAR cond_type
+        VARCHAR operator
+        TEXT value
+        VARCHAR action
+        INT upd_by FK
+    }
+    EXPERTS {
+        INT exp_id PK
+        VARCHAR name
+        VARCHAR role
+        VARCHAR email
+        DATETIME created_at
+    }
+    GOALS {
+        INT goal_id PK
+        INT usr_id FK
+        DECIMAL sal_min
+        DECIMAL sal_max
+        VARCHAR w_format
+        VARCHAR w_hours
+        VARCHAR location
+    }
+    KNOWLEDGE {
+        INT rul_id PK
+        VARCHAR name
+        TEXT condition
+        TEXT conclusion
+        INT priority
+        INT upd_by FK
+    }
+    PROFESSIONS {
+        INT prof_id PK
+        VARCHAR title
+        VARCHAR category
+        TEXT descr
+        DECIMAL avg_sal
+        VARCHAR std_src
+        INT upd_by FK
+        DATETIME upd_at
+    }
+    PROFILES {
+        INT prfl_id PK
+        INT usr_id FK
+        INT exp_years
+        VARCHAR edu_level
+        TEXT raw_input
+        TEXT skills
+        TEXT interests
+        DATETIME upd_at
+    }
+    RECOMMENDATIONS {
+        INT log_id PK
+        INT usr_id FK
+        INT prof_id FK
+        DECIMAL score
+        BOOLEAN matched
+        BOOLEAN filtered
+        INT rank_pos
+        TEXT feedback
+        DATETIME created_at
+    }
+    REPORTS {
+        INT tpl_id PK
+        VARCHAR name
+        TEXT structure
+        TEXT disp_rules
+        INT upd_by FK
+    }
+    REQUIREMENTS {
+        INT prof_id PK
+        INT skl_id PK
+        DECIMAL weight
+        BOOLEAN is_req
+        INT upd_by FK
+        DATETIME upd_at
+    }
+    SKILLS {
+        INT skl_id PK
+        VARCHAR name
+        VARCHAR type
+        TEXT aliases
+    }
+    USERS {
+        INT usr_id PK
+        VARCHAR email
+        VARCHAR pass_hash
+        DATETIME created_at
+        VARCHAR status
+    }
+    VALIDATIONS {
+        INT rul_id PK
+        VARCHAR field_name
+        TEXT condition
+        TEXT err_msg
+        INT upd_by FK
+    }

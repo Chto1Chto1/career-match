@@ -1,0 +1,26 @@
+flowchart TD
+    inp[("Профиль и цели пользователя<br/>PROFILES, GOALS")] --> r0["R0_INPUT. Проверка ввода<br/>VALIDATIONS: REGEXP, RANGE, IN"]
+    r0 -. есть ошибки .-> bad["Пользователь исключён из подбора"]
+    r0 -- данные верны --> facts["Факты: exp_years, edu_level, has_skill<br/>нормализация навыков по SKILLS"]
+    facts --> r1["R1_SKILLS. Оценка навыков<br/>базовый балл 0–100<br/>REQUIREMENTS"]
+    facts --> r3["R3_COMPARE. Правила сравнения<br/>поправка к баллу<br/>COMPARISONS"]
+    facts --> r4["R4_KNOWLEDGE. Продукции ЕСЛИ → ТО<br/>recommend / exclude<br/>KNOWLEDGE"]
+    r4 --> r6["R6_CONFLICT. Разрешение конфликтов<br/>больший priority, при равенстве exclude"]
+    r1 --> sc["Итоговый балл = базовый + поправка + надбавка<br/>диапазон 0–100"]
+    r3 --> sc
+    r6 -- надбавка +5 --> sc
+    r6 -. exclude .-> ex["Отсев: filtered = 1"]
+    sc --> r5["R5_SALARY. Фильтр по зарплате<br/>avg_sal меньше sal_min"]
+    r5 -. ниже желаемой .-> ex
+    r5 -- прошла --> r2["R2_MANDATORY. Допуск профессии<br/>обязательные навыки и балл не ниже 40"]
+    r2 -- matched = 1 --> r7["R7_RANK. Ранжирование по баллу"]
+    r7 --> out[("Результат: RECOMMENDATIONS<br/>балл, matched, filtered, rank_pos, причина")]
+    ex -.-> out
+    classDef rule fill:#fff2cc,stroke:#333
+    classDef calc fill:#d9ead3,stroke:#333
+    classDef bad fill:#f4cccc,stroke:#333
+    classDef data fill:#cfe2f3,stroke:#333
+    class r0,r1,r3,r4,r5,r2 rule
+    class facts,r6,sc,r7 calc
+    class bad,ex bad
+    class inp,out data
