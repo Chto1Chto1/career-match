@@ -1,17 +1,17 @@
 erDiagram
     PROFESSIONS ||--o{ COMPARISONS : "prof_id"
-    EXPERTS ||--o{ COMPARISONS : "upd_by"
+    EXPERTS |o--o{ COMPARISONS : "upd_by"
     USERS ||--o{ GOALS : "usr_id"
-    EXPERTS ||--o{ KNOWLEDGE : "upd_by"
-    EXPERTS ||--o{ PROFESSIONS : "upd_by"
+    EXPERTS |o--o{ KNOWLEDGE : "upd_by"
+    EXPERTS |o--o{ PROFESSIONS : "upd_by"
     USERS ||--o{ PROFILES : "usr_id"
-    PROFESSIONS ||--o{ RECOMMENDATIONS : "prof_id"
-    USERS ||--o{ RECOMMENDATIONS : "usr_id"
-    EXPERTS ||--o{ REPORTS : "upd_by"
+    PROFESSIONS |o--o{ RECOMMENDATIONS : "prof_id"
+    USERS |o--o{ RECOMMENDATIONS : "usr_id"
+    EXPERTS |o--o{ REPORTS : "upd_by"
     SKILLS ||--o{ REQUIREMENTS : "skl_id"
     PROFESSIONS ||--o{ REQUIREMENTS : "prof_id"
-    EXPERTS ||--o{ REQUIREMENTS : "upd_by"
-    EXPERTS ||--o{ VALIDATIONS : "upd_by"
+    EXPERTS |o--o{ REQUIREMENTS : "upd_by"
+    EXPERTS |o--o{ VALIDATIONS : "upd_by"
     COMPARISONS {
         INT rul_id PK
         INT prof_id FK

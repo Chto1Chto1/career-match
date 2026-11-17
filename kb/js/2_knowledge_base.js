@@ -109,7 +109,7 @@ const norm = (s) => String(s).toLowerCase().replace(/\s+/g, '');
 function normalizeSkills(text) {
   text = text || '';   // нет навыков -> пустой набор, а не ошибка
   const found = new Set();
-  text.split(',').map(norm).filter(Boolean).forEach((token) => {
+  text.split(/[,;]/).map(norm).filter(Boolean).forEach((token) => {
     SKILLS.forEach((s) => {
       const names = [norm(s.name)].concat(s.aliases ? s.aliases.split(',').map(norm) : []);
       if (names.includes(token)) found.add(s.skl_id);
@@ -120,7 +120,8 @@ function normalizeSkills(text) {
 
 // Навыки из профиля, которых нет в справочнике SKILLS
 function unknownSkills(text) {
-  return text.split(',').map((t) => t.trim()).filter(Boolean).filter((t) =>
+  text = text || '';
+  return text.split(/[,;]/).map((t) => t.trim()).filter(Boolean).filter((t) =>
     !SKILLS.some((s) => [norm(s.name)].concat(s.aliases ? s.aliases.split(',').map(norm) : []).includes(norm(t))));
 }
 
@@ -147,6 +148,8 @@ const isNum = (v) => /^-?\d+(\.\d+)?$/.test(v);
 
 function testAtom(facts, { fact, op, val }) {
   const values = [].concat(facts[fact] === undefined ? [] : facts[fact]);
+  // для списка навыков «!=» значит «такого навыка нет»
+  if (Array.isArray(facts[fact]) && op === '!=') return !testAtom(facts, { fact, op: '=', val });
   return values.some((f) => {
     if (isNum(val)) {
       if (typeof f !== 'number') return false;
@@ -168,7 +171,11 @@ function checkRules() {
   KNOWLEDGE.forEach((k) => {
     const target = k.conclusion.split(':').slice(1).join(':').trim();
     if (!titles.includes(target)) errs.push(`K${k.rul_id}: неизвестная профессия в выводе`);
-    parseCondition(k.condition).forEach((a) => {
+    const kind = k.conclusion.split(':')[0].trim().toLowerCase();
+    if (kind !== 'recommend' && kind !== 'exclude') errs.push(`K${k.rul_id}: вывод должен начинаться с recommend или exclude`);
+    let atoms = [];
+    try { atoms = parseCondition(k.condition); } catch (e) { errs.push(`K${k.rul_id}: ${e.message}`); }
+    atoms.forEach((a) => {
       if (!['exp_years', 'edu_level', 'has_skill'].includes(a.fact)) errs.push(`K${k.rul_id}: неизвестный факт ${a.fact}`);
       if (a.fact === 'has_skill' && !SKILLS.some((s) => s.name === a.val)) errs.push(`K${k.rul_id}: навык ${a.val} отсутствует в справочнике`);
     });
@@ -183,7 +190,7 @@ function checkRules() {
 function firedRules(facts) {
   return KNOWLEDGE.filter((k) => allTrue(facts, k.condition)).map((k) => {
     const [kind, ...rest] = k.conclusion.split(':');
-    return { ...k, kind: kind.trim(), target: rest.join(':').trim() };
+    return { ...k, kind: kind.trim().toLowerCase(), target: rest.join(':').trim() };
   });
 }
 
