@@ -1,0 +1,1351 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CareerMatch: подбор профессий и редактор базы знаний</title>
+<style>
+:root{--bg:#f4f6fa;--card:#fff;--ink:#14213d;--muted:#475569;--line:#dbe1ec;--blue:#1d4ed8;--blue2:#e0e9ff;--green:#15803d;--greenbg:#dcfce7;--red:#b91c1c;--redbg:#fee2e2;--amber:#92400e;--amberbg:#fef3c7;--greybg:#f1f5f9}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.45;font-size:15px}
+header.top{background:#fff;border-bottom:1px solid var(--line);padding:12px 20px;display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+header.top .brand{font-weight:700;font-size:18px;flex:1 1 auto;display:flex;gap:8px;align-items:center}
+nav.tabs{display:flex;gap:6px;flex-wrap:wrap}
+nav.tabs button{border:1px solid transparent;background:none;color:#334155;font-weight:600}
+nav.tabs button[aria-selected="true"]{background:var(--blue2);color:#1e3a8a;border-color:#bfd0ff}
+main{max-width:1200px;margin:0 auto;padding:20px 16px 56px}
+section.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin-bottom:16px}
+h1{font-size:22px;margin:0 0 4px}h2{font-size:17px;margin:0 0 12px}h3{font-size:15px;margin:14px 0 8px}
+p.lead{color:var(--muted);margin:0 0 16px}
+.row{display:flex;flex-wrap:wrap;gap:14px}
+.f{display:flex;flex-direction:column;gap:5px;flex:1 1 180px;min-width:0}
+label{font-size:13px;font-weight:600}
+input,select,textarea{font:inherit;padding:9px 11px;border:1px solid #94a3b8;border-radius:8px;background:#fff;color:var(--ink);min-height:42px;width:100%}
+textarea{resize:vertical;font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+input[aria-invalid="true"],select[aria-invalid="true"]{border-color:var(--red);background:#fff7f7}
+.hint{font-size:12px;color:var(--muted)}.err{font-size:12px;color:var(--red)}
+button{font:inherit;font-weight:600;cursor:pointer;border-radius:9px;min-height:42px;padding:0 16px;border:1px solid var(--blue);background:#fff;color:var(--blue)}
+button.primary{background:var(--blue);color:#fff}
+button.danger{border-color:var(--red);color:var(--red)}
+button.small{min-height:32px;padding:0 10px;font-size:13px}
+button.link{border:none;background:none;padding:0 4px;min-height:auto;text-decoration:underline}
+button:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:3px solid #93c5fd;outline-offset:1px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:6px;padding:6px;border:1px solid #94a3b8;border-radius:8px;background:#fff;min-height:44px;align-items:center}
+.chip{display:inline-flex;align-items:center;gap:4px;padding:3px 4px 3px 10px;border-radius:999px;font-size:13px;background:var(--greenbg);color:#14532d}
+.chip.unk{background:var(--amberbg);color:var(--amber)}
+.chip button{min-height:26px;height:26px;width:26px;padding:0;border:none;background:none;color:inherit;font-size:15px;line-height:1}
+.chips input{border:none;min-height:30px;flex:1 1 140px;padding:4px}
+.chips input:focus-visible{outline:none}
+.sugg{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.sugg button{min-height:30px;font-size:13px;padding:0 10px}
+.alert{padding:10px 12px;border-radius:8px;font-size:14px;margin-top:10px}
+.alert.err{background:var(--redbg);color:#7f1d1d}.alert.warn{background:var(--amberbg);color:#78350f}.alert.ok{background:var(--greenbg);color:#14532d}.alert.info{background:#e0f2fe;color:#0c4a6e}
+.best{border:2px solid var(--blue);border-radius:12px;padding:16px;display:flex;flex-wrap:wrap;gap:16px;align-items:center;margin-bottom:14px}
+.best .score{width:68px;height:68px;border-radius:50%;background:var(--blue);color:#fff;display:flex;align-items:center;justify-content:center;font-size:21px;font-weight:700;flex:none}
+.item{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:10px}
+.head{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between}
+.title{font-weight:700}
+.badge{padding:3px 10px;border-radius:999px;font-size:12px;font-weight:600;white-space:nowrap}
+.b-ok{background:var(--greenbg);color:#14532d}.b-bad{background:var(--redbg);color:#7f1d1d}.b-no{background:var(--greybg);color:#334155}.b-warn{background:var(--amberbg);color:#78350f}.b-info{background:#e0f2fe;color:#0c4a6e}
+.bar{position:relative;height:12px;background:#e2e8f0;border-radius:6px;margin:10px 0 6px}
+.bar i{position:absolute;left:0;top:0;bottom:0;border-radius:6px}
+.bar u{position:absolute;top:-4px;bottom:-4px;width:2px;background:#0f172a}
+details{margin-top:6px}details summary{cursor:pointer;color:var(--blue);font-weight:600;font-size:14px}
+.muted{color:var(--muted);font-size:13px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:7px 8px;border-bottom:1px solid #e2e8f0;vertical-align:top}
+th{color:var(--muted);font-weight:600}
+.scroll{overflow-x:auto}
+code,.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:13px}
+pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:8px;overflow:auto;font-size:12px;max-height:340px;margin:8px 0}
+.split{display:flex;flex-wrap:wrap;gap:16px;align-items:flex-start}
+.split>.side{flex:1 1 300px;min-width:0}
+.split>.mainp{flex:2 1 520px;min-width:0}
+.rlist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:6px}
+.rlist button{width:100%;text-align:left;border:1px solid var(--line);color:var(--ink);background:#fff;padding:8px 10px;min-height:auto;font-weight:400;display:flex;gap:8px;align-items:flex-start}
+.rlist button[aria-current="true"]{border-color:var(--blue);background:#f5f8ff}
+.rlist .rid{font-weight:700;min-width:30px}
+.atom{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:8px}
+.atom select,.atom input{width:auto;flex:1 1 120px}
+.atom .and{font-weight:700;color:var(--muted);width:24px}
+.human{background:#f8fafc;border:1px dashed #94a3b8;border-radius:8px;padding:10px 12px;font-size:15px}
+.subtabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.subtabs button[aria-selected="true"]{background:var(--blue);color:#fff}
+.issues li{margin-bottom:6px}
+.diff-up{color:var(--green);font-weight:600}.diff-down{color:var(--red);font-weight:600}
+.kpi{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.kpi div{flex:1 1 120px;border:1px solid var(--line);border-radius:10px;padding:10px;background:var(--greybg)}
+.kpi b{display:block;font-size:20px}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>CareerMatch</div>
+  <nav class="tabs" role="tablist" aria-label="Разделы">
+    <button role="tab" id="tab-user" aria-controls="pane-user" aria-selected="true">Подбор профессии</button>
+    <button role="tab" id="tab-editor" aria-controls="pane-editor" aria-selected="false">Редактор базы знаний</button>
+  </nav>
+</header>
+
+<main>
+<!-- ======================= ИНТЕРФЕЙС ПОЛЬЗОВАТЕЛЯ ======================= -->
+<div id="pane-user" role="tabpanel" aria-labelledby="tab-user">
+  <section class="card">
+    <h1>Подбор профессии</h1>
+    <p class="lead">Заполните анкету. Система сравнит ваши навыки с требованиями профессий, применит правила базы знаний и объяснит каждый результат.</p>
+    <div class="btns" style="margin-bottom:14px"><span class="muted">Заполнить примером:</span>
+      <button type="button" class="small" data-preset="0">Иван, опыт 5 лет</button>
+      <button type="button" class="small" data-preset="1">Анна, без опыта</button>
+      <button type="button" class="small" id="u-clear">Очистить</button></div>
+    <form id="u-form" novalidate autocomplete="off">
+      <div class="row">
+        <div class="f"><label for="u-email">Email</label><input id="u-email" aria-describedby="e-email" type="email" placeholder="name@mail.ru"><span class="err" id="e-email"></span></div>
+        <div class="f"><label for="u-exp">Опыт работы, лет</label><input id="u-exp" aria-describedby="e-exp_years" type="number" min="0" max="60" step="1" inputmode="numeric"><span class="err" id="e-exp_years"></span></div>
+        <div class="f"><label for="u-edu">Образование</label>
+          <select id="u-edu" aria-describedby="e-edu_level"><option value="school">Школа</option><option value="college">Колледж</option><option value="bachelor" selected>Бакалавриат</option><option value="master">Магистратура</option><option value="phd">Аспирантура</option></select><span class="err" id="e-edu_level"></span></div>
+        <div class="f"><label for="u-sal">Желаемая зарплата от, ₽</label><input id="u-sal" aria-describedby="e-sal_min" type="number" min="0" step="1000" inputmode="numeric" placeholder="необязательно"><span class="err" id="e-sal_min"></span></div>
+      </div>
+      <div class="f" style="margin-top:14px"><label for="u-skill-in">Навыки</label>
+        <div class="chips" id="u-chips"><input id="u-skill-in" type="text" placeholder="Начните вводить: Python, SQL, Общение..." aria-describedby="u-skill-hint"></div>
+        <span class="hint" id="u-skill-hint">Enter или запятая добавляют навык. Можно писать синонимами: «Питон», «Postgres», «Общение».</span>
+        <div class="sugg" id="u-sugg" aria-live="polite"></div>
+      </div>
+      <div class="btns" style="margin-top:16px"><button class="primary" type="submit">Подобрать профессии</button><span class="muted" id="u-status" aria-live="polite"></span></div>
+    </form>
+  </section>
+
+  <section class="card" id="u-result" hidden>
+    <h2>Результат</h2>
+    <div id="u-best" aria-live="polite"></div>
+    <div id="u-advice"></div>
+    <h3>Все профессии</h3>
+    <div id="u-list"></div>
+    <div class="btns" style="margin-top:8px"><button type="button" id="u-save">Сохранить в журнал</button><span class="muted" id="u-saved"></span></div>
+  </section>
+
+  <section class="card">
+    <h2>Журнал подборов</h2>
+    <p class="muted">Каждый сохранённый подбор соответствует строкам таблицы RECOMMENDATIONS. Журнал хранится в этом браузере.</p>
+    <div id="u-journal"></div>
+  </section>
+</div>
+
+<!-- ======================= ИНТЕЛЛЕКТУАЛЬНЫЙ РЕДАКТОР ======================= -->
+<div id="pane-editor" role="tabpanel" aria-labelledby="tab-editor" hidden>
+  <section class="card">
+    <h1>Интеллектуальный редактор базы знаний</h1>
+    <p class="lead">Эксперт добавляет и меняет правила. Редактор сразу проверяет каждое правило: синтаксис и словарь, выполнимость условия, дубли и избыточность, конфликты с другими правилами. До сохранения видно, как правило изменит результат для тестовых пользователей.</p>
+    <div class="kpi" id="kb-kpi"></div>
+    <div class="btns"><button type="button" class="small" id="kb-undo">Отменить последнее изменение</button>
+      <button type="button" class="small danger" id="kb-reset">Вернуть исходную базу знаний</button></div>
+  </section>
+
+  <div class="subtabs" role="tablist" aria-label="Разделы редактора">
+    <button role="tab" class="small" data-sub="rules" aria-controls="sub-rules" aria-selected="true">Правила ЕСЛИ → ТО</button>
+    <button role="tab" class="small" data-sub="cmp" aria-controls="sub-cmp" aria-selected="false">Поправки к баллу</button>
+    <button role="tab" class="small" data-sub="skills" aria-controls="sub-skills" aria-selected="false">Справочник навыков</button>
+    <button role="tab" class="small" data-sub="audit" aria-controls="sub-audit" aria-selected="false">Проверка всей базы</button>
+    <button role="tab" class="small" data-sub="export" aria-controls="sub-export" aria-selected="false">Экспорт и журнал</button>
+  </div>
+
+  <!-- Правила -->
+  <div data-subpane="rules" id="sub-rules" class="split" role="tabpanel">
+    <section class="card side">
+      <div class="btns" style="justify-content:space-between;margin-bottom:10px"><h2 style="margin:0">Правила (KNOWLEDGE)</h2><button type="button" class="small primary" id="r-new">+ Новое</button></div>
+      <ul class="rlist" id="r-list"></ul>
+    </section>
+    <section class="card mainp" id="r-form-card">
+      <h2 id="r-form-title">Правило</h2>
+      <div class="row">
+        <div class="f" style="flex-basis:260px"><label for="r-name">Название</label><input id="r-name" type="text"></div>
+        <div class="f" style="flex:0 1 130px"><label for="r-prio">Приоритет</label><input id="r-prio" type="number" min="0" step="1"></div>
+      </div>
+      <h3>ЕСЛИ</h3>
+      <div id="r-atoms"></div>
+      <button type="button" class="small" id="r-add-atom">+ И ещё условие</button>
+      <h3>ТО</h3>
+      <div class="row">
+        <div class="f" style="flex:0 1 200px"><label for="r-kind">Действие</label><select id="r-kind"><option value="recommend">рекомендовать</option><option value="exclude">исключить</option></select></div>
+        <div class="f"><label for="r-target">Профессия</label><select id="r-target"></select></div>
+      </div>
+      <h3>Запись правила</h3>
+      <div class="human" id="r-human"></div>
+      <div class="f" style="margin-top:10px"><label for="r-raw">Условие в формате базы знаний (можно править текстом)</label><input id="r-raw" type="text" class="mono" spellcheck="false"><span class="hint">Формат: факт оператор значение, части соединяются словом AND. Факты: exp_years, edu_level, has_skill.</span></div>
+      <h3>Проверка</h3>
+      <ul class="issues" id="r-issues"></ul>
+      <h3>Влияние на результат</h3>
+      <div id="r-impact"></div>
+      <div class="btns" style="margin-top:14px"><button type="button" class="primary" id="r-save">Сохранить правило</button><button type="button" id="r-cancel">Отменить правки</button><button type="button" class="danger" id="r-del">Удалить</button></div>
+      <div id="r-msg" aria-live="polite"></div>
+    </section>
+  </div>
+
+  <!-- Поправки -->
+  <section class="card" data-subpane="cmp" id="sub-cmp" role="tabpanel" hidden>
+    <h2>Поправки к баллу (COMPARISONS)</h2>
+    <p class="muted">Поправка меняет балл одной профессии, если выполняется условие. Поправки суммируются, в отличие от правил ЕСЛИ → ТО, которые соревнуются по приоритету.</p>
+    <div class="scroll"><table id="c-table"></table></div>
+    <h3>Новая поправка</h3>
+    <div class="row" id="c-form">
+      <div class="f"><label for="c-prof">Профессия</label><select id="c-prof"></select></div>
+      <div class="f" style="flex:0 1 150px"><label for="c-type">Факт</label><select id="c-type"><option value="exp_years">опыт, лет</option></select></div>
+      <div class="f" style="flex:0 1 110px"><label for="c-op">Оператор</label><select id="c-op"></select></div>
+      <div class="f" style="flex:0 1 110px"><label for="c-val">Значение</label><input id="c-val" type="number" step="1"></div>
+      <div class="f" style="flex:0 1 110px"><label for="c-sign">Изменение</label><select id="c-sign"><option value="+">прибавить</option><option value="-">отнять</option></select></div>
+      <div class="f" style="flex:0 1 110px"><label for="c-num">Баллов</label><input id="c-num" type="number" min="1" step="1"></div>
+    </div>
+    <ul class="issues" id="c-issues"></ul>
+    <div class="btns"><button type="button" class="primary" id="c-add">Добавить поправку</button></div>
+  </section>
+
+  <!-- Навыки -->
+  <section class="card" data-subpane="skills" id="sub-skills" role="tabpanel" hidden>
+    <h2>Справочник навыков (SKILLS)</h2>
+    <p class="muted">Синонимы позволяют пользователю писать навык по-разному. Редактор не даст назначить один синоним двум навыкам и удалить навык, который используется в правилах или требованиях профессий.</p>
+    <div id="s-unknown"></div>
+    <div class="scroll"><table id="s-table"></table></div>
+    <h3>Добавить навык или синоним</h3>
+    <div class="row">
+      <div class="f"><label for="s-name">Навык</label><input id="s-name" type="text" list="s-names"></div>
+      <div class="f" style="flex-basis:300px"><label for="s-aliases">Синонимы через запятую</label><input id="s-aliases" type="text"></div>
+    </div>
+    <datalist id="s-names"></datalist>
+    <ul class="issues" id="s-issues"></ul>
+    <div class="btns"><button type="button" class="primary" id="s-save">Сохранить навык</button></div>
+  </section>
+
+  <!-- Аудит -->
+  <section class="card" data-subpane="audit" id="sub-audit" role="tabpanel" hidden>
+    <h2>Проверка всей базы знаний</h2>
+    <p class="muted">Полный список замечаний по всем правилам и поправкам, а также правила, которые не сработали ни для одного тестового пользователя.</p>
+    <div id="a-out"></div>
+  </section>
+
+  <!-- Экспорт -->
+  <section class="card" data-subpane="export" id="sub-export" role="tabpanel" hidden>
+    <h2>Экспорт базы знаний</h2>
+    <p class="muted">Изменения переносятся в базу данных SQL-скриптом, а в программу 2_knowledge_base.js массивами JavaScript.</p>
+    <div class="btns"><button type="button" class="small" id="x-sql-dl">Скачать SQL</button><button type="button" class="small" id="x-js-dl">Скачать JS</button></div>
+    <h3>SQL для базы данных</h3><pre id="x-sql"></pre>
+    <h3>Массивы для 2_knowledge_base.js</h3><pre id="x-js"></pre>
+    <h3>Журнал изменений</h3><div id="x-log"></div>
+  </section>
+</div>
+</main>
+
+<script>
+// =====================================================================
+// Система подбора профессий. База знаний на JavaScript: факты, правила
+// ЕСЛИ → ТО, разрешение конфликтов и рейтинг. Данные скопированы из
+// 1_database.sql, база данных для запуска не нужна. Установка не нужна:
+//   • браузер: F12 -> вкладка Console -> вставить весь файл -> Enter;
+//   • онлайн-редактор JavaScript / Node.js (например, onecompiler.com);
+//   • Node.js: node 2_knowledge_base.js
+// =====================================================================
+
+// ---------- Параметры модели (CONFIG) ----------
+const CONFIG = {
+  BONUS_RECOMMEND: 5,   // надбавка к баллу, если победило правило recommend
+  MIN_SCORE: 40,        // порог: профессия с баллом ниже не рекомендуется
+  SCORE_MIN: 0,         // нижняя граница итогового балла
+  SCORE_MAX: 100        // верхняя граница итогового балла
+};
+
+// ---------- Данные: копия тестовых данных из 1_database.sql ----------
+const SKILLS = [
+  { skl_id: 1,  name: 'Python',        aliases: 'Питон, Python3, Py' },
+  { skl_id: 2,  name: 'Django',        aliases: null },
+  { skl_id: 3,  name: 'PostgreSQL',    aliases: 'Postgres, PgSQL' },
+  { skl_id: 4,  name: 'SQL',           aliases: null },
+  { skl_id: 5,  name: 'Git',           aliases: 'Гит' },
+  { skl_id: 6,  name: 'Docker',        aliases: 'Докер' },
+  { skl_id: 7,  name: 'JavaScript',    aliases: 'JS, Java Script' },
+  { skl_id: 8,  name: 'React',         aliases: 'ReactJS, React.js' },
+  { skl_id: 9,  name: 'HTML/CSS',      aliases: 'HTML, CSS' },
+  { skl_id: 10, name: 'Excel',         aliases: 'Эксель, MS Excel' },
+  { skl_id: 11, name: 'Statistics',    aliases: 'Статистика' },
+  { skl_id: 12, name: 'Testing',       aliases: 'Тестирование, QA' },
+  { skl_id: 13, name: 'Communication', aliases: 'Общение, Коммуникабельность' },
+  { skl_id: 14, name: 'Teamwork',      aliases: 'Командная работа, Работа в команде' }
+];
+
+const PROFESSIONS = [
+  { prof_id: 1, title: 'Python Developer',        avg_sal: 200000 },
+  { prof_id: 2, title: 'Data Analyst',            avg_sal: 160000 },
+  { prof_id: 3, title: 'Frontend Developer',      avg_sal: 180000 },
+  { prof_id: 4, title: 'Project Manager',         avg_sal: 190000 },
+  { prof_id: 5, title: 'QA Engineer',             avg_sal: 120000 },
+  { prof_id: 6, title: 'Junior Python Developer', avg_sal: 90000 }
+];
+
+// [prof_id, skl_id, weight, is_req]
+const REQUIREMENTS = [
+  [1, 1, 5, true], [1, 2, 4, false], [1, 3, 3, false], [1, 5, 2, false], [1, 6, 3, false], [1, 13, 1, false],
+  [2, 4, 5, true], [2, 1, 3, false], [2, 11, 4, false], [2, 10, 2, false], [2, 13, 1, false],
+  [3, 7, 5, true], [3, 8, 4, false], [3, 9, 4, true], [3, 5, 2, false],
+  [4, 13, 5, true], [4, 14, 4, true], [4, 10, 2, false],
+  [5, 12, 5, true], [5, 4, 2, false], [5, 1, 2, false], [5, 5, 1, false],
+  [6, 1, 5, true], [6, 5, 2, false], [6, 4, 2, false]
+].map(([prof_id, skl_id, weight, is_req]) => ({ prof_id, skl_id, weight, is_req }));
+
+// Правила сравнения (таблица COMPARISONS)
+const COMPARISONS = [
+  { rul_id: 1, prof_id: 1, cond_type: 'exp_years', operator: '>=', value: '3', action: 'score += 5' },
+  { rul_id: 2, prof_id: 1, cond_type: 'exp_years', operator: '<',  value: '1', action: 'score -= 10' },
+  { rul_id: 3, prof_id: 6, cond_type: 'exp_years', operator: '>',  value: '2', action: 'score -= 30' }
+];
+
+// Правила «ЕСЛИ -> ТО» (таблица KNOWLEDGE)
+const KNOWLEDGE = [
+  { rul_id: 1, name: 'Junior Python',                   condition: 'exp_years < 1 AND has_skill = Python',  conclusion: 'recommend: Junior Python Developer', priority: 10 },
+  { rul_id: 2, name: 'Опытный Python-разработчик',      condition: 'exp_years >= 3 AND has_skill = Python', conclusion: 'recommend: Python Developer',        priority: 10 },
+  { rul_id: 3, name: 'Слишком опытный для Junior',      condition: 'exp_years >= 3',                        conclusion: 'exclude: Junior Python Developer',   priority: 20 },
+  { rul_id: 4, name: 'Python и SQL ведут в аналитику',  condition: 'has_skill = Python AND has_skill = SQL', conclusion: 'recommend: Data Analyst',            priority: 8 },
+  { rul_id: 5, name: 'Бэкенд-опыт - не аналитик',       condition: 'exp_years >= 3 AND has_skill = Django', conclusion: 'exclude: Data Analyst',              priority: 12 },
+  { rul_id: 6, name: 'Django ведёт в Python Developer', condition: 'has_skill = Django',                    conclusion: 'recommend: Python Developer',        priority: 5 }
+];
+
+// Правила проверки ввода (таблица VALIDATIONS)
+const VALIDATIONS = [
+  { field: 'email',     condition: 'REGEXP:^[^@ ]+@[^@ ]+[.][^@ ]+$',       err: 'Некорректный email' },
+  { field: 'exp_years', condition: 'RANGE:0..60',                           err: 'Опыт должен быть от 0 до 60 лет' },
+  { field: 'edu_level', condition: 'IN:school,college,bachelor,master,phd', err: 'Недопустимый уровень образования' },
+  { field: 'sal_min',   condition: 'RANGE:0..10000000',                     err: 'Недопустимая минимальная зарплата' }
+];
+
+// Профили (PROFILES) и цели (GOALS) пользователей
+const USERS = [
+  { usr_id: 1, email: 'ivan@mail.ru', exp_years: 5, edu_level: 'master',
+    skills: 'Python3, Django, Postgres, SQL, Git, Общение', sal_min: 150000 },
+  { usr_id: 2, email: 'anna@mail.ru', exp_years: 0, edu_level: 'bachelor',
+    skills: 'python, SQL, Git, Excel, Statistics, Teamwork, Figma', sal_min: 80000 }
+];
+
+// ---------- Слой 0. R0_INPUT: проверка ввода (VALIDATIONS) ----------
+function validateUser(user) {
+  return VALIDATIONS.filter((v) => {
+    const val = user[v.field];
+    if (val === undefined || val === null) return false;
+    // числовые поля: строка, NaN и бесконечность - это ошибка ввода, а не допустимое значение
+    if (v.condition.startsWith('RANGE:') && (typeof val !== 'number' || !Number.isFinite(val))) return true;
+    const [kind, ...rest] = v.condition.split(':');
+    const spec = rest.join(':');
+    if (kind === 'REGEXP') return !new RegExp(spec).test(String(val));
+    if (kind === 'RANGE') { const [lo, hi] = spec.split('..').map(parseFloat); return val < lo || val > hi; }
+    if (kind === 'IN') return !spec.split(',').includes(String(val));
+    return false;
+  }).map((v) => v.err);
+}
+
+// ---------- Слой 1. Факты ----------
+// «Python3», «python», «Питон» -> один и тот же ключ: нижний регистр, без пробелов
+const norm = (s) => String(s).toLowerCase().replace(/\s+/g, '');
+
+// Навык пользователя -> каноническое название из SKILLS (по имени или синониму)
+function normalizeSkills(text) {
+  text = text || '';   // нет навыков -> пустой набор, а не ошибка
+  const found = new Set();
+  text.split(/[,;]/).map(norm).filter(Boolean).forEach((token) => {
+    SKILLS.forEach((s) => {
+      const names = [norm(s.name)].concat(s.aliases ? s.aliases.split(',').map(norm) : []);
+      if (names.includes(token)) found.add(s.skl_id);
+    });
+  });
+  return found; // множество skl_id
+}
+
+// Навыки из профиля, которых нет в справочнике SKILLS
+function unknownSkills(text) {
+  text = text || '';
+  return text.split(/[,;]/).map((t) => t.trim()).filter(Boolean).filter((t) =>
+    !SKILLS.some((s) => [norm(s.name)].concat(s.aliases ? s.aliases.split(',').map(norm) : []).includes(norm(t))));
+}
+
+function computeFacts(user) {
+  const skillIds = normalizeSkills(user.skills);
+  return {
+    exp_years: user.exp_years,
+    edu_level: user.edu_level,
+    has_skill: SKILLS.filter((s) => skillIds.has(s.skl_id)).map((s) => s.name),
+    skillIds
+  };
+}
+
+// ---------- Слой 2. Условия правил: «A AND B AND C» ----------
+function parseCondition(text) {
+  return text.split(' AND ').map((atom) => {
+    const m = atom.trim().match(/^(\S+)\s+(!=|<=|>=|=|<|>)\s+(.+)$/);
+    if (!m) throw new Error('Не разобрано условие: ' + atom);
+    return { fact: m[1], op: m[2], val: m[3].trim() };
+  });
+}
+
+const isNum = (v) => /^-?\d+(\.\d+)?$/.test(v);
+
+function testAtom(facts, { fact, op, val }) {
+  const values = [].concat(facts[fact] === undefined ? [] : facts[fact]);
+  // для списка навыков «!=» значит «такого навыка нет»
+  if (Array.isArray(facts[fact]) && op === '!=') return !testAtom(facts, { fact, op: '=', val });
+  return values.some((f) => {
+    if (isNum(val)) {
+      if (typeof f !== 'number') return false;
+      const v = parseFloat(val);
+      return { '=': f === v, '!=': f !== v, '<': f < v, '<=': f <= v, '>': f > v, '>=': f >= v }[op];
+    }
+    if (typeof f !== 'string') return false;
+    const a = f.toLowerCase(), b = val.toLowerCase();
+    return op === '=' ? a === b : op === '!=' ? a !== b : false;
+  });
+}
+
+const allTrue = (facts, cond) => parseCondition(cond).every((a) => testAtom(facts, a));
+
+// Контроль самих правил: ошибка эксперта видна сразу
+function checkRules() {
+  const errs = [];
+  const titles = PROFESSIONS.map((p) => p.title);
+  KNOWLEDGE.forEach((k) => {
+    const target = k.conclusion.split(':').slice(1).join(':').trim();
+    if (!titles.includes(target)) errs.push(`K${k.rul_id}: неизвестная профессия в выводе`);
+    const kind = k.conclusion.split(':')[0].trim().toLowerCase();
+    if (kind !== 'recommend' && kind !== 'exclude') errs.push(`K${k.rul_id}: вывод должен начинаться с recommend или exclude`);
+    let atoms = [];
+    try { atoms = parseCondition(k.condition); } catch (e) { errs.push(`K${k.rul_id}: ${e.message}`); }
+    atoms.forEach((a) => {
+      if (!['exp_years', 'edu_level', 'has_skill'].includes(a.fact)) errs.push(`K${k.rul_id}: неизвестный факт ${a.fact}`);
+      if (a.fact === 'has_skill' && !SKILLS.some((s) => s.name === a.val)) errs.push(`K${k.rul_id}: навык ${a.val} отсутствует в справочнике`);
+    });
+  });
+  COMPARISONS.forEach((c) => {
+    if (!/^score [+-]= \d+(\.\d+)?$/.test(c.action)) errs.push(`C${c.rul_id}: неверный формат действия`);
+  });
+  return errs;
+}
+
+// ---------- Слой 3. Сработавшие правила и разрешение конфликтов ----------
+function firedRules(facts) {
+  return KNOWLEDGE.filter((k) => allTrue(facts, k.condition)).map((k) => {
+    const [kind, ...rest] = k.conclusion.split(':');
+    return { ...k, kind: kind.trim().toLowerCase(), target: rest.join(':').trim() };
+  });
+}
+
+// Для каждой профессии побеждает правило с наибольшим priority;
+// при равенстве приоритетов exclude сильнее recommend
+function resolveConflicts(fired) {
+  const winners = {};
+  fired.slice()
+    .sort((a, b) => (b.priority - a.priority) ||
+                    ((b.kind === 'exclude') - (a.kind === 'exclude')) ||
+                    (a.rul_id - b.rul_id))
+    .forEach((r) => { if (!winners[r.target]) winners[r.target] = r; });
+  return winners;
+}
+
+// Правила сравнения COMPARISONS: суммарная поправка к баллу профессии
+function comparisonDelta(facts, prof_id) {
+  return COMPARISONS.filter((c) => c.prof_id === prof_id)
+    .filter((c) => testAtom(facts, { fact: c.cond_type, op: c.operator, val: c.value }))
+    .reduce((sum, c) => {
+      const m = c.action.match(/^score ([+-])= (\d+(?:\.\d+)?)$/);
+      return m ? sum + (m[1] === '-' ? -1 : 1) * parseFloat(m[2]) : sum;
+    }, 0);
+}
+
+// ---------- Слой 4-5. Баллы, фильтры, рейтинг ----------
+const round4 = (x) => Math.round(x * 1e4) / 1e4;
+
+function recommend(user) {
+  const facts = computeFacts(user);
+  const fired = firedRules(facts);
+  const winners = resolveConflicts(fired);
+
+  const rows = PROFESSIONS.map((p) => {
+    const reqs = REQUIREMENTS.filter((r) => r.prof_id === p.prof_id);
+    const totalW = reqs.reduce((s, r) => s + r.weight, 0);
+    const gotW = reqs.filter((r) => facts.skillIds.has(r.skl_id)).reduce((s, r) => s + r.weight, 0);
+    const reqCnt = reqs.filter((r) => r.is_req).length;
+    const reqGot = reqs.filter((r) => r.is_req && facts.skillIds.has(r.skl_id)).length;
+
+    const base = round4(totalW > 0 ? 100 * gotW / totalW : 0);       // R1_SKILLS
+    const delta = comparisonDelta(facts, p.prof_id);                  // R3_COMPARE
+    const w = winners[p.title];
+    const bonus = w && w.kind === 'recommend' ? CONFIG.BONUS_RECOMMEND : 0; // R4_KNOWLEDGE
+    const score = round4(Math.min(CONFIG.SCORE_MAX, Math.max(CONFIG.SCORE_MIN, base + delta + bonus)));
+    const reqOk = reqCnt === reqGot;                                   // R2_MANDATORY
+    const matched = reqOk && score >= CONFIG.MIN_SCORE;               // + порог MIN_SCORE
+    const byRule = !!(w && w.kind === 'exclude');                     // R4_KNOWLEDGE (exclude)
+    const bySalary = user.sal_min != null && p.avg_sal != null && p.avg_sal < user.sal_min; // R5_SALARY
+    const filtered = byRule || bySalary;
+    return { usr_id: user.usr_id, prof_id: p.prof_id, title: p.title, gotW, totalW,
+             base, delta, bonus, score, matched, filtered, rank_pos: null,
+             reqOk, byRule, bySalary, wRul: w ? w.rul_id : null };
+  });
+
+  // R7_RANK: место получают подходящие и не отсеянные, по убыванию балла
+  rows.filter((r) => r.matched && !r.filtered)
+      .sort((a, b) => (b.score - a.score) || (a.prof_id - b.prof_id))
+      .forEach((r, i) => { r.rank_pos = i + 1; });
+
+  // Причина результата (объяснение для пользователя)
+  rows.forEach((r) => {
+    r.reason = r.byRule ? 'отсеяна правилом K' + r.wRul
+             : r.bySalary ? 'зарплата профессии ниже желаемой'
+             : !r.reqOk ? 'нет обязательного навыка'
+             : !r.matched ? 'балл ниже порога ' + CONFIG.MIN_SCORE
+             : 'рекомендована, место ' + r.rank_pos;
+  });
+
+  return { facts, fired, winners, rows };
+}
+
+// ---------- Запись результата: INSERT-запросы для RECOMMENDATIONS ----------
+function toSql(rows) {
+  const v = rows.map((r) => `(${r.usr_id}, ${r.prof_id}, ${r.score.toFixed(4)}, ${r.matched ? 1 : 0}, ` +
+                            `${r.filtered ? 1 : 0}, ${r.rank_pos === null ? 'NULL' : r.rank_pos})`);
+  return 'INSERT INTO RECOMMENDATIONS (usr_id, prof_id, score, matched, filtered, rank_pos) VALUES\n ' +
+         v.join(',\n ') + ';';
+}
+
+
+</script>
+<script>
+(function () {
+  'use strict';
+  // =====================================================================
+  // Общие помощники
+  // =====================================================================
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = function (s) {
+    return String(s == null ? '' : s).replace(/[&<>"']/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+  };
+  var fmt = function (x) { return (Math.round(x * 100) / 100).toString().replace('.', ','); };
+  var money = function (x) { return Number(x).toLocaleString('ru-RU') + ' ₽'; };
+  var clone = function (x) { return JSON.parse(JSON.stringify(x)); };
+  var store = {
+    get: function (k) { try { var v = localStorage.getItem(k); return v ? JSON.parse(v) : null; } catch (e) { return null; } },
+    set: function (k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* хранилище недоступно */ } }
+  };
+
+  var EDU = { school: 'школа', college: 'колледж', bachelor: 'бакалавриат', master: 'магистратура', phd: 'аспирантура' };
+  var EDU_KEYS = Object.keys(EDU);
+  var EXP_MIN = 0, EXP_MAX = 60; // область значений факта exp_years (правило VALIDATIONS)
+  var OPS_HUMAN = { '=': '=', '!=': '≠', '<': '<', '<=': '≤', '>': '>', '>=': '≥' };
+  // Словарь фактов: какие операторы и значения допустимы
+  var FACTS = {
+    exp_years: { label: 'опыт, лет', ops: ['>=', '>', '<=', '<', '=', '!='] },
+    edu_level: { label: 'образование', ops: ['=', '!='] },
+    has_skill: { label: 'навык', ops: ['=', '!='] }
+  };
+
+  // Исходная база знаний: нужна для сброса
+  var ORIGINAL = { KNOWLEDGE: clone(KNOWLEDGE), COMPARISONS: clone(COMPARISONS), SKILLS: clone(SKILLS) };
+  function setArray(arr, items) { arr.splice.apply(arr, [0, arr.length].concat(clone(items))); }
+  function snapshot() { return { KNOWLEDGE: clone(KNOWLEDGE), COMPARISONS: clone(COMPARISONS), SKILLS: clone(SKILLS) }; }
+  function applySnap(s) { setArray(KNOWLEDGE, s.KNOWLEDGE); setArray(COMPARISONS, s.COMPARISONS); setArray(SKILLS, s.SKILLS); }
+
+  // Сохранённая экспертом база знаний и журнал изменений
+  var saved = store.get('cm_kb');
+  if (saved && saved.KNOWLEDGE && saved.COMPARISONS && saved.SKILLS) applySnap(saved);
+  var history = store.get('cm_hist') || [];  // стек отмены: [{time, text, before}]
+  var changeLog = store.get('cm_log') || []; // журнал изменений: [{time, text}]
+  function persist() { store.set('cm_kb', snapshot()); store.set('cm_hist', history.slice(-40)); store.set('cm_log', changeLog.slice(-200)); }
+  function change(text, fn) {
+    var before = snapshot();
+    fn();
+    var time = new Date().toLocaleString('ru-RU');
+    history.push({ time: time, text: text, before: before });
+    changeLog.push({ time: time, text: text });
+    persist();
+    refreshAll();
+  }
+
+  // Расстояние Левенштейна: подсказка «возможно, вы имели в виду»
+  function lev(a, b) {
+    a = a.toLowerCase(); b = b.toLowerCase();
+    var d = [], i, j;
+    for (i = 0; i <= a.length; i++) { d[i] = [i]; }
+    for (j = 0; j <= b.length; j++) { d[0][j] = j; }
+    for (i = 1; i <= a.length; i++) for (j = 1; j <= b.length; j++)
+      d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+    return d[a.length][b.length];
+  }
+  function closest(word, list) {
+    var best = null, bd = 99;
+    list.forEach(function (c) { var x = lev(word, c); if (x < bd) { bd = x; best = c; } });
+    return bd <= Math.max(2, Math.floor(word.length / 3)) ? best : null;
+  }
+  function skillTerms() { // все написания навыков -> каноническое имя
+    var out = [];
+    SKILLS.forEach(function (s) {
+      out.push({ term: s.name, name: s.name });
+      (s.aliases ? s.aliases.split(',') : []).forEach(function (a) { if (a.trim()) out.push({ term: a.trim(), name: s.name }); });
+    });
+    return out;
+  }
+  function canonSkill(text) {
+    var t = norm(text), hit = null;
+    skillTerms().forEach(function (x) { if (norm(x.term) === t) hit = x.name; });
+    return hit;
+  }
+
+  // =====================================================================
+  // Человеческая запись правил
+  // =====================================================================
+  function humanAtom(a) {
+    if (a.fact === 'exp_years') return 'опыт ' + OPS_HUMAN[a.op] + ' ' + a.val + ' ' + yearsWord(a.val);
+    if (a.fact === 'edu_level') return 'образование ' + (a.op === '=' ? '' : 'не ') + (EDU[a.val] || a.val);
+    if (a.fact === 'has_skill') return (a.op === '=' ? 'есть навык ' : 'нет навыка ') + a.val;
+    return a.fact + ' ' + a.op + ' ' + a.val;
+  }
+  function pointsWord(x) {
+    if (Math.floor(x) !== x) return 'балла';
+    var n = Math.abs(x) % 100, n1 = n % 10;
+    if (n > 10 && n < 20) return 'баллов';
+    if (n1 === 1) return 'балл';
+    if (n1 >= 2 && n1 <= 4) return 'балла';
+    return 'баллов';
+  }
+  function yearsWord(v) {
+    var n = Math.abs(parseInt(v, 10)) % 100, n1 = n % 10;
+    if (n > 10 && n < 20) return 'лет';
+    if (n1 === 1) return 'года';
+    if (n1 >= 2 && n1 <= 4) return 'лет';
+    return 'лет';
+  }
+  function actHuman(a) { var m = String(a).match(/^score ([+-])= (\d+(?:\.\d+)?)$/); return m ? (m[1] === '+' ? '+' : '−') + m[2] + ' к баллу' : a; }
+  function parseConclusion(c) {
+    var i = c.indexOf(':');
+    return { kind: (i < 0 ? c : c.slice(0, i)).trim().toLowerCase(), target: i < 0 ? '' : c.slice(i + 1).trim() };
+  }
+  function humanRule(k) {
+    var atoms; try { atoms = parseCondition(k.condition); } catch (e) { return 'ЕСЛИ (условие не разобрано) ТО ' + k.conclusion; }
+    var c = parseConclusion(k.conclusion);
+    return 'ЕСЛИ ' + atoms.map(humanAtom).join(' И ') + ' ТО ' + (c.kind === 'exclude' ? 'исключить ' : 'рекомендовать ') + c.target;
+  }
+
+  // =====================================================================
+  // Логический анализ условий
+  // Условие задаёт множество профилей: допустимые значения опыта (целые 0..60),
+  // допустимые уровни образования, обязательные и запрещённые навыки.
+  // =====================================================================
+  function region(atoms) {
+    var exp = [], i;
+    for (i = EXP_MIN; i <= EXP_MAX; i++) exp.push(i);
+    var edu = EDU_KEYS.slice(), pos = {}, neg = {};
+    atoms.forEach(function (a) {
+      if (a.fact === 'exp_years') {
+        var v = parseFloat(a.val);
+        exp = exp.filter(function (x) { return { '=': x === v, '!=': x !== v, '<': x < v, '<=': x <= v, '>': x > v, '>=': x >= v }[a.op]; });
+      } else if (a.fact === 'edu_level') {
+        edu = edu.filter(function (x) { return a.op === '=' ? x === a.val : x !== a.val; });
+      } else if (a.fact === 'has_skill') {
+        (a.op === '=' ? pos : neg)[a.val] = true;
+      }
+    });
+    var clash = Object.keys(pos).filter(function (s) { return neg[s]; });
+    return { exp: exp, edu: edu, pos: pos, neg: neg, clash: clash, sat: exp.length > 0 && edu.length > 0 && clash.length === 0 };
+  }
+  function subset(a, b) { return a.every(function (x) { return b.indexOf(x) >= 0; }); }
+  function keysIn(a, b) { return Object.keys(a).every(function (k) { return b[k]; }); }
+  // A ⇒ B: каждый профиль, удовлетворяющий A, удовлетворяет B
+  function implies(A, B) { return !A.sat || (subset(A.exp, B.exp) && subset(A.edu, B.edu) && keysIn(B.pos, A.pos) && keysIn(B.neg, A.neg)); }
+  function overlap(atomsA, atomsB) { return region(atomsA.concat(atomsB)).sat; }
+  function unsatReason(R) {
+    if (!R.exp.length) return 'ни одно значение опыта от 0 до 60 лет не удовлетворяет ограничениям';
+    if (!R.edu.length) return 'ограничения на образование несовместимы';
+    if (R.clash.length) return 'навык ' + R.clash.join(', ') + ' одновременно требуется и запрещается';
+    return '';
+  }
+
+  // =====================================================================
+  // Интеллектуальная проверка правила ЕСЛИ -> ТО
+  // Возвращает список замечаний {level: error|warn|info, text}
+  // =====================================================================
+  function checkRule(r, others) {
+    var out = [], atoms = [];
+    var add = function (level, text) { out.push({ level: level, text: text }); };
+    if (!String(r.name || '').trim()) add('error', 'Укажите название правила.');
+    if (String(r.name || '').length > 255) add('error', 'Название длиннее 255 символов: столбец KNOWLEDGE.name его не вместит.');
+    if (!/^\d+$/.test(String(r.priority))) add('error', 'Приоритет должен быть целым числом от 0.');
+    else if (Number(r.priority) > 1000000) add('error', 'Приоритет больше 1 000 000: задайте разумное значение.');
+    var c = parseConclusion(r.conclusion || '');
+    if (c.kind !== 'recommend' && c.kind !== 'exclude') add('error', 'Действие должно быть «рекомендовать» или «исключить».');
+    var titles = PROFESSIONS.map(function (p) { return p.title; });
+    if (titles.indexOf(c.target) < 0) {
+      var s = closest(c.target, titles);
+      add('error', 'Профессии «' + c.target + '» нет в справочнике PROFESSIONS.' + (s ? ' Возможно, имелась в виду «' + s + '».' : ''));
+    }
+    try { atoms = parseCondition(r.condition || ''); }
+    catch (e) { add('error', 'Условие не разобрано: ' + e.message.replace('Не разобрано условие: ', '') + '. Нужен вид «факт оператор значение».'); return out; }
+    var skillNames = SKILLS.map(function (s) { return s.name; });
+    atoms.forEach(function (a) {
+      var F = FACTS[a.fact];
+      if (!F) { add('error', 'Неизвестный факт «' + a.fact + '». Допустимы: exp_years, edu_level, has_skill.'); return; }
+      if (F.ops.indexOf(a.op) < 0) add('error', 'Оператор «' + a.op + '» нельзя применять к факту ' + a.fact + ' (допустимы: ' + F.ops.join(' ') + ').');
+      if (a.fact === 'exp_years' && !/^(0|[1-9]\d*)$/.test(a.val)) add('error', 'Опыт сравнивается с целым числом лет без лишних нулей, а не с «' + a.val + '».');
+      if (a.fact === 'edu_level' && EDU_KEYS.indexOf(a.val) < 0) add('error', 'Уровень образования «' + a.val + '» неизвестен. Допустимы: ' + EDU_KEYS.join(', ') + '.');
+      if (a.fact === 'has_skill' && skillNames.indexOf(a.val) < 0) {
+        var cs = canonSkill(a.val) || closest(a.val, skillNames);
+        add('error', 'Навыка «' + a.val + '» нет в справочнике SKILLS.' + (cs ? ' Возможно, имелся в виду «' + cs + '».' : ' Добавьте его в справочник навыков.'));
+      }
+    });
+    var keys = atoms.map(function (a) { return a.fact + a.op + a.val.toLowerCase(); });
+    if (keys.some(function (k, i) { return keys.indexOf(k) !== i; })) add('warn', 'Одна и та же часть условия повторяется.');
+    if (out.some(function (x) { return x.level === 'error'; })) return out;
+
+    var R = region(atoms);
+    if (!R.sat) { add('error', 'Условие никогда не выполнится: ' + unsatReason(R) + '.'); return out; }
+    if (R.exp.length === EXP_MAX - EXP_MIN + 1 && R.edu.length === EDU_KEYS.length && !Object.keys(R.pos).length && !Object.keys(R.neg).length)
+      add('warn', 'Условие истинно для любого профиля: правило срабатывает всегда.');
+
+    others.forEach(function (o) {
+      var oa; try { oa = parseCondition(o.condition); } catch (e) { return; }
+      var oc = parseConclusion(o.conclusion), O = region(oa);
+      if (!O.sat || oc.target !== c.target) return;
+      var id = 'K' + o.rul_id;
+      if (oc.kind === c.kind) {
+        // правило избыточно, если более общее правило с тем же выводом не слабее по приоритету:
+        // тогда любое противоположное правило, которое побеждает его, побеждает и это
+        var ab = implies(R, O), ba = implies(O, R), p0 = Number(r.priority), q0 = Number(o.priority);
+        if (ab && ba && p0 === q0) add('warn', 'Дублирует правило ' + id + ': то же условие, тот же вывод и приоритет.');
+        else if (ab && q0 >= p0) add('warn', 'Избыточно: всякий раз, когда срабатывает это правило, срабатывает и ' + (ba ? 'равносильное' : 'более общее') + ' правило ' + id + ' с тем же выводом и не меньшим приоритетом (' + q0 + ').');
+        else if (ba && p0 >= q0) add('info', 'Это правило ' + (ab ? 'равносильно' : 'более общее, чем') + ' ' + id + ' с тем же выводом и не меньшим приоритетом: ' + id + ' становится избыточным.');
+      } else if (overlap(atoms, oa)) {
+        var p = Number(r.priority), q = Number(o.priority);
+        var winnerIsThis = p > q || (p === q && c.kind === 'exclude');
+        if (p === q) add('warn', 'Конфликт с ' + id + ' при равных приоритетах (' + p + '): победит исключение. Лучше задать разные приоритеты.');
+        else if (!winnerIsThis && implies(R, O)) add('warn', 'Никогда не повлияет на результат: всегда срабатывает вместе с ' + id + ' (приоритет ' + q + '), а оно сильнее.');
+        else add('info', 'Возможен конфликт с ' + id + ' («' + (oc.kind === 'exclude' ? 'исключить' : 'рекомендовать') + '», приоритет ' + q + '). При одновременном срабатывании победит ' + (winnerIsThis ? 'это правило' : id) + '.');
+      }
+    });
+    return out;
+  }
+
+  function checkComparison(cRule, others) {
+    var out = [], add = function (l, t) { out.push({ level: l, text: t }); };
+    if (!PROFESSIONS.some(function (p) { return p.prof_id === Number(cRule.prof_id); })) add('error', 'Выберите профессию.');
+    if (!/^(0|[1-9]\d*)$/.test(String(cRule.value))) add('error', 'Значение опыта должно быть целым числом без лишних нулей.');
+    if (!/^score [+-]= \d+(\.\d+)?$/.test(cRule.action) || !(parseFloat(cRule.action.split('= ')[1]) > 0)) add('error', 'Изменение балла должно быть положительным числом.');
+    if (out.length) return out;
+    var atom = [{ fact: cRule.cond_type, op: cRule.operator, val: String(cRule.value) }];
+    var R = region(atom);
+    if (!R.sat) add('error', 'Условие никогда не выполнится: ' + unsatReason(R) + '.');
+    if (R.exp.length === EXP_MAX - EXP_MIN + 1) add('warn', 'Условие выполняется при любом опыте: это постоянная поправка.');
+    others.forEach(function (o) {
+      if (Number(o.prof_id) !== Number(cRule.prof_id)) return;
+      var O = region([{ fact: o.cond_type, op: o.operator, val: String(o.value) }]);
+      if (implies(R, O) && implies(O, R)) add('warn', 'Повторяет условие поправки C' + o.rul_id + ' для той же профессии: поправки сложатся.');
+    });
+    var n = parseFloat(cRule.action.split('= ')[1]);
+    if (n > 50) add('warn', 'Поправка больше 50 баллов почти всегда решает исход сама по себе.');
+    return out;
+  }
+
+  // =====================================================================
+  // Результаты подбора и сравнение «было / стало»
+  // =====================================================================
+  function status(r) { return r.rank_pos !== null ? 'место ' + r.rank_pos : r.filtered ? 'отсеяна' : 'не подходит'; }
+  function runAll(users) { return users.map(function (u) { return { user: u, res: recommend(u) }; }); }
+  function testUsers() {
+    var list = USERS.slice();
+    var cur = readProfile();
+    if (cur.skills && !validateUser(cur).length) list.push(Object.assign({}, cur, { usr_id: 0, email: 'анкета из вкладки подбора' }));
+    return list;
+  }
+  function withDraft(draft, replaceId, fn) {
+    var keep = clone(KNOWLEDGE);
+    var idx = KNOWLEDGE.findIndex(function (k) { return k.rul_id === replaceId; });
+    if (draft === null) { if (idx >= 0) KNOWLEDGE.splice(idx, 1); }
+    else if (idx >= 0) KNOWLEDGE[idx] = draft; else KNOWLEDGE.push(draft);
+    try { return fn(); } finally { setArray(KNOWLEDGE, keep); }
+  }
+  function diffRuns(a, b) {
+    var lines = [];
+    a.forEach(function (x, i) {
+      var y = b[i], who = x.user.email || ('пользователь ' + x.user.usr_id);
+      x.res.rows.forEach(function (r, j) {
+        var s = y.res.rows[j];
+        if (status(r) !== status(s) || Math.abs(r.score - s.score) > 1e-9) {
+          var better = (s.rank_pos !== null && (r.rank_pos === null || s.rank_pos < r.rank_pos)) || (s.score > r.score && status(r) === status(s));
+          lines.push('<li><b>' + esc(who) + '</b>, ' + esc(r.title) + ': ' + esc(status(r)) + ' (' + fmt(r.score) + ') → <span class="' + (better ? 'diff-up' : 'diff-down') + '">' + esc(status(s)) + ' (' + fmt(s.score) + ')</span></li>');
+        }
+      });
+    });
+    return lines;
+  }
+
+  // =====================================================================
+  // ИНТЕРФЕЙС ПОЛЬЗОВАТЕЛЯ
+  // =====================================================================
+  var chips = []; // навыки, введённые пользователем (как написал)
+  var lastRun = null;
+  var presetId = 0;
+
+  function renderChips() {
+    var box = $('u-chips'), input = $('u-skill-in');
+    Array.prototype.slice.call(box.querySelectorAll('.chip')).forEach(function (n) { n.remove(); });
+    chips.forEach(function (t, i) {
+      var canon = canonSkill(t), el = document.createElement('span');
+      el.className = 'chip' + (canon ? '' : ' unk');
+      el.title = canon ? (norm(canon) === norm(t) ? 'Навык из справочника' : 'Распознано как ' + canon) : 'Нет в справочнике: в подборе не участвует';
+      el.innerHTML = esc(t) + (canon && norm(canon) !== norm(t) ? ' → ' + esc(canon) : '') +
+        '<button type="button" aria-label="Удалить навык ' + esc(t) + '">×</button>';
+      el.querySelector('button').addEventListener('click', function () { chips.splice(i, 1); presetId = 0; renderChips(); });
+      box.insertBefore(el, input);
+    });
+    var unk = chips.filter(function (t) { return !canonSkill(t); });
+    $('u-sugg').innerHTML = unk.map(function (t) {
+      var s = closest(t, skillTerms().map(function (x) { return x.term; }));
+      return s ? '<span class="muted">«' + esc(t) + '» нет в справочнике. Возможно:</span> <button type="button" class="small" data-fix="' + esc(t) + '" data-to="' + esc(s) + '">' + esc(s) + '</button>'
+               : '<span class="muted">«' + esc(t) + '» нет в справочнике навыков, в подборе не участвует.</span>';
+    }).join(' ');
+    Array.prototype.forEach.call($('u-sugg').querySelectorAll('[data-fix]'), function (b) {
+      b.addEventListener('click', function () { chips[chips.indexOf(b.getAttribute('data-fix'))] = b.getAttribute('data-to'); renderChips(); });
+    });
+  }
+  function addChip(text) {
+    text.split(/[,;]/).map(function (t) { return t.trim(); }).filter(Boolean).forEach(function (t) {
+      if (!chips.some(function (c) { return norm(c) === norm(t); })) chips.push(t);
+    });
+    presetId = 0; renderChips();
+  }
+  function showSkillSuggest() {
+    var v = $('u-skill-in').value.trim();
+    if (!v) { renderChips(); return; }
+    var nv = norm(v), seen = {};
+    var hits = skillTerms().filter(function (x) { return norm(x.term).indexOf(nv) === 0 || norm(x.name).indexOf(nv) === 0; })
+      .filter(function (x) { if (seen[x.term]) return false; seen[x.term] = 1; return true; }).slice(0, 6);
+    $('u-sugg').innerHTML = hits.map(function (x) {
+      return '<button type="button" class="small" data-add="' + esc(x.term) + '">' + esc(x.term) + (x.term !== x.name ? ' → ' + esc(x.name) : '') + '</button>';
+    }).join('');
+    Array.prototype.forEach.call($('u-sugg').querySelectorAll('[data-add]'), function (b) {
+      b.addEventListener('click', function () { addChip(b.getAttribute('data-add')); $('u-skill-in').value = ''; $('u-skill-in').focus(); });
+    });
+  }
+  function readProfile() {
+    var e = $('u-exp').value, s = $('u-sal').value;
+    return {
+      usr_id: presetId, email: $('u-email').value.trim() || null,
+      exp_years: e === '' ? NaN : Number(e), edu_level: $('u-edu').value,
+      sal_min: s === '' ? null : Number(s), skills: chips.join(', ')
+    };
+  }
+  function fieldErrors(u) {
+    var errs = {};
+    VALIDATIONS.forEach(function (v) {
+      var one = {}; one[v.field] = u[v.field];
+      if (v.field === 'email' && !u.email) return;
+      if (validateUser(one).length) errs[v.field] = v.err;
+    });
+    if (isNaN(u.exp_years)) errs.exp_years = 'Укажите опыт работы в годах (0, если опыта нет)';
+    else if (Math.floor(u.exp_years) !== u.exp_years) errs.exp_years = 'Опыт указывается целым числом лет';
+    return errs;
+  }
+  function showFieldErrors(errs) {
+    [['email', 'u-email'], ['exp_years', 'u-exp'], ['edu_level', 'u-edu'], ['sal_min', 'u-sal']].forEach(function (p) {
+      $('e-' + p[0]).textContent = errs[p[0]] || '';
+      $(p[1]).setAttribute('aria-invalid', errs[p[0]] ? 'true' : 'false');
+    });
+  }
+  function setPreset(i) {
+    var u = USERS[i]; presetId = u.usr_id;
+    $('u-email').value = u.email; $('u-exp').value = u.exp_years; $('u-edu').value = u.edu_level;
+    $('u-sal').value = u.sal_min == null ? '' : u.sal_min;
+    chips = u.skills.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+    renderChips(); showFieldErrors({});
+  }
+
+  // Совет: какой один навык открыл бы профессию (перебор «что если»)
+  function advice(u, res) {
+    var tips = [];
+    res.rows.filter(function (r) { return r.rank_pos === null; }).forEach(function (r) {
+      var best = null;
+      REQUIREMENTS.filter(function (q) { return q.prof_id === r.prof_id && !res.facts.skillIds.has(q.skl_id); }).forEach(function (q) {
+        var sk = SKILLS.find(function (s) { return s.skl_id === q.skl_id; });
+        var test = recommend(Object.assign({}, u, { skills: u.skills + ', ' + sk.name }));
+        var row = test.rows.find(function (x) { return x.prof_id === r.prof_id; });
+        if (row.rank_pos !== null && (!best || row.score > best.score)) best = { skill: sk.name, score: row.score };
+      });
+      if (best) tips.push('<li>Добавьте навык <b>' + esc(best.skill) + '</b>: профессия <b>' + esc(r.title) + '</b> станет доступна с баллом ' + fmt(best.score) + '.</li>');
+    });
+    return tips.length ? '<div class="alert info"><b>Что можно улучшить.</b><ul style="margin:6px 0 0;padding-left:20px">' + tips.join('') + '</ul></div>' : '';
+  }
+
+  function explainRow(r, res) {
+    var parts = [];
+    parts.push('Навыки: найдено на вес ' + r.gotW + ' из ' + r.totalW + ', это ' + fmt(r.base) + ' ' + pointsWord(r.base) + '.');
+    var cm = COMPARISONS.filter(function (c) { return c.prof_id === r.prof_id && testAtom(res.facts, { fact: c.cond_type, op: c.operator, val: c.value }); });
+    cm.forEach(function (c) { parts.push('Поправка C' + c.rul_id + ' (' + humanAtom({ fact: c.cond_type, op: c.operator, val: c.value }) + '): ' + actHuman(c.action) + '.'); });
+    var rules = res.fired.filter(function (f) { return f.target === r.title; });
+    rules.forEach(function (f) {
+      var win = res.winners[r.title] === f;
+      parts.push('Правило K' + f.rul_id + ': ' + humanRule(f) + (win ? (f.kind === 'recommend' ? ' (применено, +' + r.bonus + ')' : ' (применено)') : ' (перекрыто правилом K' + res.winners[r.title].rul_id + ')') + '.');
+    });
+    var miss = REQUIREMENTS.filter(function (q) { return q.prof_id === r.prof_id && q.is_req && !res.facts.skillIds.has(q.skl_id); })
+      .map(function (q) { return SKILLS.find(function (s) { return s.skl_id === q.skl_id; }).name; });
+    if (miss.length) parts.push('Не хватает обязательных навыков: ' + miss.join(', ') + '.');
+    var p = PROFESSIONS.find(function (x) { return x.prof_id === r.prof_id; });
+    if (r.bySalary) parts.push('Средняя зарплата профессии ' + money(p.avg_sal) + ' ниже желаемой.');
+    if (r.base + r.delta + r.bonus > CONFIG.SCORE_MAX) parts.push('Сумма ' + fmt(r.base + r.delta + r.bonus) + ' ограничена максимальным баллом ' + CONFIG.SCORE_MAX + '.');
+    if (r.base + r.delta + r.bonus < CONFIG.SCORE_MIN) parts.push('Сумма ограничена минимальным баллом ' + CONFIG.SCORE_MIN + '.');
+    if (r.score < CONFIG.MIN_SCORE) parts.push('Итоговый балл ниже порога ' + CONFIG.MIN_SCORE + '.');
+    return '<ul style="margin:6px 0 0;padding-left:20px">' + parts.map(function (t) { return '<li>' + esc(t) + '</li>'; }).join('') + '</ul>';
+  }
+
+  function runUser(e) {
+    if (e) e.preventDefault();
+    if ($('u-skill-in').value.trim()) { addChip($('u-skill-in').value); $('u-skill-in').value = ''; }
+    var u = readProfile(), errs = fieldErrors(u);
+    showFieldErrors(errs);
+    if (Object.keys(errs).length) { $('u-status').textContent = 'Исправьте поля, отмеченные красным.'; $('u-result').hidden = true; return; }
+    if (!chips.length) { $('u-status').textContent = 'Добавьте хотя бы один навык.'; $('u-result').hidden = true; return; }
+    $('u-status').textContent = '';
+    var res = recommend(u); lastRun = { user: u, res: res };
+    var ranked = res.rows.filter(function (r) { return r.rank_pos !== null; }).sort(function (a, b) { return a.rank_pos - b.rank_pos; });
+    var top = ranked[0];
+    $('u-best').innerHTML = top
+      ? '<div class="best"><div class="score">' + Math.round(top.score) + '</div><div style="flex:1 1 300px"><div class="muted">Лучше всего подходит</div><div style="font-size:21px;font-weight:700">' + esc(top.title) + '</div><div class="muted">Средняя зарплата ' + money(PROFESSIONS.find(function (p) { return p.prof_id === top.prof_id; }).avg_sal) + '. Подходящих профессий: ' + ranked.length + '.</div></div></div>'
+      : '<div class="alert warn">По вашей анкете нет подходящих профессий. Посмотрите причины ниже и советы, какие навыки добавить.</div>';
+    var unk = unknownSkills(u.skills);
+    $('u-advice').innerHTML = (unk.length ? '<div class="alert warn">Не учтены навыки, которых нет в справочнике: ' + esc(unk.join(', ')) + '.</div>' : '') + advice(u, res);
+    var order = res.rows.slice().sort(function (a, b) { return ((a.rank_pos === null) - (b.rank_pos === null)) || (a.rank_pos - b.rank_pos) || (b.score - a.score); });
+    $('u-list').innerHTML = order.map(function (r) {
+      var cls = r.rank_pos !== null ? 'b-ok' : r.filtered ? 'b-bad' : 'b-no';
+      var col = r.rank_pos !== null ? '#15803d' : r.filtered ? '#b91c1c' : '#64748b';
+      return '<div class="item"><div class="head"><span class="title">' + esc(r.title) + '</span><span class="badge ' + cls + '">' + esc(status(r)) + ' · ' + fmt(r.score) + '</span></div>' +
+        '<div class="bar" role="img" aria-label="Балл ' + fmt(r.score) + ' из 100, порог ' + CONFIG.MIN_SCORE + '"><i style="width:' + r.score + '%;background:' + col + '"></i><u style="left:' + CONFIG.MIN_SCORE + '%"></u></div>' +
+        '<div><b>Причина:</b> ' + esc(r.reason) + '</div><details><summary>Почему так?</summary>' + explainRow(r, res) + '</details></div>';
+    }).join('');
+    $('u-saved').textContent = '';
+    $('u-result').hidden = false;
+  }
+
+  function renderJournal() {
+    var j = store.get('cm_journal') || [];
+    if (!j.length) { $('u-journal').innerHTML = '<p class="muted">Пока пусто.</p>'; return; }
+    $('u-journal').innerHTML = '<div class="scroll"><table><tr><th>Когда</th><th>Пользователь</th><th>Лучшая профессия</th><th>Подходящих</th></tr>' +
+      j.slice().reverse().map(function (x) { return '<tr><td>' + esc(x.time) + '</td><td>' + esc(x.who) + '</td><td>' + esc(x.top) + '</td><td>' + x.count + '</td></tr>'; }).join('') +
+      '</table></div><details><summary>SQL для таблицы RECOMMENDATIONS (последний подбор)</summary><pre>' + esc(j[j.length - 1].sql) + '</pre></details>' +
+      '<div class="btns" style="margin-top:8px"><button type="button" class="small danger" id="u-jclear">Очистить журнал</button></div>';
+    $('u-jclear').addEventListener('click', function () { if (!window.confirm('Очистить журнал подборов?')) return; store.set('cm_journal', []); renderJournal(); });
+  }
+
+  // =====================================================================
+  // РЕДАКТОР ПРАВИЛ
+  // =====================================================================
+  var curId = null;      // rul_id редактируемого правила, null = новое
+  var draftAtoms = [];
+
+  function nextId(arr) { return arr.reduce(function (m, x) { return Math.max(m, x.rul_id); }, 0) + 1; }
+  function ruleLevel(k) {
+    var iss = checkRule(k, KNOWLEDGE.filter(function (o) { return o.rul_id !== k.rul_id; }));
+    return iss.some(function (x) { return x.level === 'error'; }) ? 'error' : iss.some(function (x) { return x.level === 'warn'; }) ? 'warn' : 'ok';
+  }
+  function renderRuleList() {
+    $('r-list').innerHTML = KNOWLEDGE.slice().sort(function (a, b) { return a.rul_id - b.rul_id; }).map(function (k) {
+      var lv = ruleLevel(k), c = parseConclusion(k.conclusion);
+      var badge = lv === 'error' ? '<span class="badge b-bad">ошибка</span>' : lv === 'warn' ? '<span class="badge b-warn">замечание</span>' : '<span class="badge b-ok">ок</span>';
+      return '<li><button type="button" data-rule="' + k.rul_id + '" aria-current="' + (k.rul_id === curId) + '"><span class="rid">K' + k.rul_id + '</span><span style="flex:1"><b>' + esc(k.name) + '</b><br><span class="muted">' + (c.kind === 'exclude' ? 'исключить ' : 'рекомендовать ') + esc(c.target) + ' · приоритет ' + k.priority + '</span></span>' + badge + '</button></li>';
+    }).join('');
+    Array.prototype.forEach.call($('r-list').querySelectorAll('[data-rule]'), function (b) {
+      b.addEventListener('click', function () { openRule(Number(b.getAttribute('data-rule'))); });
+    });
+  }
+  function fillTargets(sel, value) {
+    sel.innerHTML = PROFESSIONS.map(function (p) { return '<option' + (p.title === value ? ' selected' : '') + '>' + esc(p.title) + '</option>'; }).join('');
+    if (value && !PROFESSIONS.some(function (p) { return p.title === value; })) sel.innerHTML += '<option selected>' + esc(value) + '</option>';
+  }
+  function openRule(id) {
+    curId = id;
+    var k = id === null ? { rul_id: nextId(KNOWLEDGE), name: '', condition: 'exp_years >= 1', conclusion: 'recommend: ' + PROFESSIONS[0].title, priority: 5 }
+                        : clone(KNOWLEDGE.find(function (x) { return x.rul_id === id; }));
+    $('r-form-title').textContent = id === null ? 'Новое правило K' + k.rul_id : 'Правило K' + k.rul_id;
+    $('r-name').value = k.name; $('r-prio').value = k.priority;
+    var c = parseConclusion(k.conclusion);
+    $('r-kind').value = c.kind === 'exclude' ? 'exclude' : 'recommend';
+    fillTargets($('r-target'), c.target);
+    $('r-raw').value = k.condition;
+    try { draftAtoms = parseCondition(k.condition); } catch (e) { draftAtoms = []; }
+    $('r-del').hidden = id === null; $('r-del').textContent = 'Удалить'; pendingDelete = null;
+    $('r-msg').innerHTML = '';
+    renderAtoms(); updateDraft(); renderRuleList();
+  }
+  function atomRow(a, i) {
+    var factSel = '<select data-i="' + i + '" data-k="fact" aria-label="Факт">' + Object.keys(FACTS).map(function (f) {
+      return '<option value="' + f + '"' + (a.fact === f ? ' selected' : '') + '>' + FACTS[f].label + '</option>';
+    }).join('') + (FACTS[a.fact] ? '' : '<option selected value="' + esc(a.fact) + '">' + esc(a.fact) + '</option>') + '</select>';
+    var ops = (FACTS[a.fact] || FACTS.exp_years).ops;
+    var opSel = '<select data-i="' + i + '" data-k="op" aria-label="Оператор">' + ops.map(function (o) {
+      return '<option value="' + esc(o) + '"' + (a.op === o ? ' selected' : '') + '>' + OPS_HUMAN[o] + '</option>';
+    }).join('') + (ops.indexOf(a.op) < 0 ? '<option selected value="' + esc(a.op) + '">' + esc(a.op) + '</option>' : '') + '</select>';
+    var val;
+    if (a.fact === 'edu_level') {
+      val = '<select data-i="' + i + '" data-k="val" aria-label="Значение">' + EDU_KEYS.map(function (e) { return '<option value="' + e + '"' + (a.val === e ? ' selected' : '') + '>' + EDU[e] + '</option>'; }).join('') +
+        (EDU_KEYS.indexOf(a.val) < 0 ? '<option selected value="' + esc(a.val) + '">' + esc(a.val) + '</option>' : '') + '</select>';
+    } else if (a.fact === 'has_skill') {
+      val = '<input data-i="' + i + '" data-k="val" list="r-skill-list" value="' + esc(a.val) + '" aria-label="Навык">';
+    } else {
+      val = '<input data-i="' + i + '" data-k="val" type="number" step="1" min="0" max="60" value="' + esc(a.val) + '" aria-label="Значение">';
+    }
+    return '<div class="atom"><span class="and">' + (i ? 'И' : '') + '</span>' + factSel + opSel + val +
+      '<button type="button" class="small" data-rm="' + i + '" aria-label="Удалить часть условия"' + (draftAtoms.length < 2 ? ' disabled' : '') + '>×</button></div>';
+  }
+  function renderAtoms() {
+    $('r-atoms').innerHTML = draftAtoms.map(atomRow).join('') +
+      '<datalist id="r-skill-list">' + SKILLS.map(function (s) { return '<option value="' + esc(s.name) + '">'; }).join('') + '</datalist>';
+    Array.prototype.forEach.call($('r-atoms').querySelectorAll('[data-k]'), function (el) {
+      el.addEventListener(el.tagName === 'SELECT' ? 'change' : 'input', function () {
+        var i = Number(el.getAttribute('data-i')), k = el.getAttribute('data-k'), a = draftAtoms[i];
+        a[k] = el.value;
+        if (k === 'fact') { a.op = FACTS[a.fact].ops[0]; a.val = a.fact === 'edu_level' ? 'bachelor' : a.fact === 'has_skill' ? SKILLS[0].name : '1'; renderAtoms(); }
+        $('r-raw').value = draftAtoms.map(function (x) { return x.fact + ' ' + x.op + ' ' + x.val; }).join(' AND ');
+        updateDraft();
+      });
+    });
+    Array.prototype.forEach.call($('r-atoms').querySelectorAll('[data-rm]'), function (b) {
+      b.addEventListener('click', function () { draftAtoms.splice(Number(b.getAttribute('data-rm')), 1); syncRaw(); renderAtoms(); updateDraft(); });
+    });
+  }
+  function syncRaw() { $('r-raw').value = draftAtoms.map(function (x) { return x.fact + ' ' + x.op + ' ' + x.val; }).join(' AND '); }
+  function currentDraft() {
+    return { rul_id: curId === null ? nextId(KNOWLEDGE) : curId, name: $('r-name').value.trim(), condition: $('r-raw').value.trim(),
+             conclusion: $('r-kind').value + ': ' + $('r-target').value, priority: $('r-prio').value === '' ? '' : Number($('r-prio').value) };
+  }
+  function issuesHtml(list) {
+    if (!list.length) return '<li><span class="badge b-ok">ок</span> Ошибок и противоречий не найдено.</li>';
+    var order = { error: 0, warn: 1, info: 2 };
+    return list.slice().sort(function (a, b) { return order[a.level] - order[b.level]; }).map(function (x) {
+      var b = x.level === 'error' ? '<span class="badge b-bad">ошибка</span>' : x.level === 'warn' ? '<span class="badge b-warn">внимание</span>' : '<span class="badge b-info">справка</span>';
+      return '<li>' + b + ' ' + esc(x.text) + '</li>';
+    }).join('');
+  }
+  function updateDraft() {
+    var d = currentDraft();
+    var iss = checkRule(d, KNOWLEDGE.filter(function (o) { return o.rul_id !== d.rul_id; }));
+    $('r-issues').innerHTML = issuesHtml(iss);
+    $('r-human').textContent = humanRule(d) + (d.priority !== '' ? ' (приоритет ' + d.priority + ')' : '');
+    var hasErr = iss.some(function (x) { return x.level === 'error'; });
+    $('r-save').disabled = hasErr;
+    if (hasErr) { $('r-impact').innerHTML = '<p class="muted">Появится после исправления ошибок.</p>'; return; }
+    var users = testUsers();
+    var before = runAll(users), after = withDraft(d, d.rul_id, function () { return runAll(users); });
+    var fires = users.filter(function (u) { return allTrue(computeFacts(u), d.condition); }).map(function (u) { return u.email || ('пользователь ' + u.usr_id); });
+    var lines = diffRuns(before, after);
+    $('r-impact').innerHTML = '<p class="muted">Срабатывает для: ' + (fires.length ? esc(fires.join(', ')) : 'никого из тестовых пользователей') + '.</p>' +
+      (lines.length ? '<ul>' + lines.join('') + '</ul>' : '<p class="muted">Результаты тестовых пользователей не изменятся.</p>');
+  }
+  function saveRule() {
+    var d = currentDraft();
+    var iss = checkRule(d, KNOWLEDGE.filter(function (o) { return o.rul_id !== d.rul_id; }));
+    if (iss.some(function (x) { return x.level === 'error'; })) return;
+    var isNew = curId === null;
+    change((isNew ? 'Добавлено правило K' : 'Изменено правило K') + d.rul_id + ': ' + humanRule(d), function () {
+      var idx = KNOWLEDGE.findIndex(function (k) { return k.rul_id === d.rul_id; });
+      if (idx >= 0) KNOWLEDGE[idx] = d; else KNOWLEDGE.push(d);
+    });
+    curId = d.rul_id; openRule(curId);
+    $('r-msg').innerHTML = '<div class="alert ok">Правило K' + d.rul_id + ' сохранено' + (iss.some(function (x) { return x.level === 'warn'; }) ? '. Обратите внимание на замечания выше' : '') + '.</div>';
+  }
+  var pendingDelete = null;
+  function deleteRule() {
+    if (curId === null) return;
+    var id = curId, users = testUsers();
+    var lines = diffRuns(runAll(users), withDraft(null, id, function () { return runAll(users); }));
+    if (pendingDelete !== id) {
+      pendingDelete = id;
+      $('r-del').textContent = 'Подтвердить удаление K' + id;
+      $('r-msg').innerHTML = '<div class="alert warn">Удалить правило K' + id + '? ' + (lines.length ? 'Изменятся результаты:<ul>' + lines.join('') + '</ul>' : 'Результаты тестовых пользователей не изменятся.') + ' Нажмите «Подтвердить удаление» ещё раз.</div>';
+      return;
+    }
+    pendingDelete = null;
+    change('Удалено правило K' + id, function () { KNOWLEDGE.splice(KNOWLEDGE.findIndex(function (k) { return k.rul_id === id; }), 1); });
+    openRule(KNOWLEDGE.length ? KNOWLEDGE[0].rul_id : null);
+    $('r-msg').innerHTML = '<div class="alert ok">Правило K' + id + ' удалено. ' + (lines.length ? 'Изменилось:<ul>' + lines.join('') + '</ul>' : 'Результаты тестовых пользователей не изменились.') + ' Отменить можно кнопкой вверху.</div>';
+  }
+
+  // ---------- Поправки ----------
+  function renderCmp() {
+    $('c-prof').innerHTML = PROFESSIONS.map(function (p) { return '<option value="' + p.prof_id + '">' + esc(p.title) + '</option>'; }).join('');
+    $('c-op').innerHTML = FACTS.exp_years.ops.map(function (o) { return '<option value="' + esc(o) + '">' + OPS_HUMAN[o] + '</option>'; }).join('');
+    $('c-table').innerHTML = '<tr><th>Код</th><th>Профессия</th><th>Условие</th><th>Действие</th><th>Проверка</th><th></th></tr>' +
+      COMPARISONS.map(function (c) {
+        var p = PROFESSIONS.find(function (x) { return x.prof_id === c.prof_id; });
+        var iss = checkComparison(c, COMPARISONS.filter(function (o) { return o.rul_id !== c.rul_id; }));
+        return '<tr><td><b>C' + c.rul_id + '</b></td><td>' + esc(p ? p.title : '?') + '</td><td>' + esc(humanAtom({ fact: c.cond_type, op: c.operator, val: c.value })) + '</td><td>' + esc(actHuman(c.action)) + '</td><td>' +
+          (iss.length ? iss.map(function (x) { return esc(x.text); }).join('<br>') : '<span class="badge b-ok">ок</span>') + '</td><td><button type="button" class="small danger" data-cdel="' + c.rul_id + '" aria-label="Удалить поправку C' + c.rul_id + '">Удалить</button></td></tr>';
+      }).join('');
+    Array.prototype.forEach.call($('c-table').querySelectorAll('[data-cdel]'), function (b) {
+      b.addEventListener('click', function () {
+        var id = Number(b.getAttribute('data-cdel'));
+        if (!window.confirm('Удалить поправку C' + id + '?')) return;
+        change('Удалена поправка C' + id, function () { COMPARISONS.splice(COMPARISONS.findIndex(function (c) { return c.rul_id === id; }), 1); });
+      });
+    });
+    updateCmpDraft();
+  }
+  function cmpDraft() {
+    return { rul_id: nextId(COMPARISONS), prof_id: Number($('c-prof').value), cond_type: 'exp_years', operator: $('c-op').value,
+             value: $('c-val').value, action: 'score ' + $('c-sign').value + '= ' + ($('c-num').value || '0') };
+  }
+  function updateCmpDraft() {
+    var d = cmpDraft(), iss = checkComparison(d, COMPARISONS);
+    $('c-issues').innerHTML = ($('c-val').value === '' && $('c-num').value === '') ? '' : issuesHtml(iss);
+    $('c-add').disabled = !$('c-val').value || !$('c-num').value || iss.some(function (x) { return x.level === 'error'; });
+  }
+
+  // ---------- Справочник навыков ----------
+  function usedSkill(name) {
+    var s = SKILLS.find(function (x) { return x.name === name; });
+    var inRules = KNOWLEDGE.filter(function (k) { try { return parseCondition(k.condition).some(function (a) { return a.fact === 'has_skill' && a.val === name; }); } catch (e) { return false; } }).map(function (k) { return 'K' + k.rul_id; });
+    var inReq = s ? REQUIREMENTS.filter(function (r) { return r.skl_id === s.skl_id; }).map(function (r) { return PROFESSIONS.find(function (p) { return p.prof_id === r.prof_id; }).title; }) : [];
+    return inRules.concat(inReq);
+  }
+  function renderSkills() {
+    var unk = {};
+    USERS.forEach(function (u) { unknownSkills(u.skills).forEach(function (t) { unk[t] = 1; }); });
+    chips.forEach(function (t) { if (!canonSkill(t)) unk[t] = 1; });
+    var list = Object.keys(unk);
+    $('s-unknown').innerHTML = list.length ? '<div class="alert warn">В анкетах встречаются навыки, которых нет в справочнике: ' + list.map(function (t) {
+      return '<button type="button" class="link" data-sadd="' + esc(t) + '">' + esc(t) + '</button>';
+    }).join(', ') + '. Нажмите на навык, чтобы добавить его.</div>' : '';
+    Array.prototype.forEach.call($('s-unknown').querySelectorAll('[data-sadd]'), function (b) {
+      b.addEventListener('click', function () { $('s-name').value = b.getAttribute('data-sadd'); $('s-aliases').value = ''; updateSkillDraft(); $('s-name').focus(); });
+    });
+    $('s-table').innerHTML = '<tr><th>Навык</th><th>Синонимы</th><th>Используется</th><th></th></tr>' + SKILLS.map(function (s) {
+      var used = usedSkill(s.name);
+      return '<tr><td><b>' + esc(s.name) + '</b></td><td>' + esc(s.aliases || '') + '</td><td class="muted">' + esc(used.join(', ') || 'нигде') + '</td><td class="btns">' +
+        '<button type="button" class="small" data-sedit="' + esc(s.name) + '">Изменить</button>' +
+        '<button type="button" class="small danger" data-sdel="' + esc(s.name) + '"' + (used.length ? ' disabled title="Навык используется: удаление нарушит целостность"' : '') + '>Удалить</button></td></tr>';
+    }).join('');
+    $('s-names').innerHTML = SKILLS.map(function (s) { return '<option value="' + esc(s.name) + '">'; }).join('');
+    Array.prototype.forEach.call($('s-table').querySelectorAll('[data-sedit]'), function (b) {
+      b.addEventListener('click', function () { var s = SKILLS.find(function (x) { return x.name === b.getAttribute('data-sedit'); }); $('s-name').value = s.name; $('s-aliases').value = s.aliases || ''; updateSkillDraft(); });
+    });
+    Array.prototype.forEach.call($('s-table').querySelectorAll('[data-sdel]'), function (b) {
+      b.addEventListener('click', function () { var n = b.getAttribute('data-sdel'); if (!window.confirm('Удалить навык ' + n + '?')) return; change('Удалён навык ' + n, function () { SKILLS.splice(SKILLS.findIndex(function (x) { return x.name === n; }), 1); }); });
+    });
+    updateSkillDraft();
+  }
+  function checkSkill(name, aliases) {
+    var out = [], add = function (l, t) { out.push({ level: l, text: t }); };
+    if (!name) { add('error', 'Укажите название навыка.'); return out; }
+    var existing = SKILLS.find(function (s) { return norm(s.name) === norm(name); });
+    if (existing && existing.name !== name) { add('error', 'Такой навык уже есть под написанием «' + existing.name + '». Выберите его, чтобы изменить синонимы.'); return out; }
+    if (name.length > 255) add('error', 'Название длиннее 255 символов.');
+    var mine = [name].concat(aliases);
+    mine.forEach(function (t) { if (/[,;]/.test(t)) add('error', '«' + t + '» содержит запятую или точку с запятой: при вводе навыков это разделители, такое написание не распознается.'); });
+    mine.forEach(function (t, i) { if (mine.slice(0, i).some(function (x) { return norm(x) === norm(t); })) add('warn', 'Синоним «' + t + '» повторяется.'); });
+    skillTerms().forEach(function (x) {
+      if (existing && x.name === existing.name) return;
+      mine.forEach(function (t) { if (norm(t) === norm(x.term)) add('error', '«' + t + '» уже означает навык ' + x.name + '. Один синоним не может относиться к двум навыкам.'); });
+    });
+    if (!existing) {
+      var near = closest(name, SKILLS.map(function (s) { return s.name; }));
+      if (near) add('info', 'Похожий навык уже есть: «' + near + '». Возможно, «' + name + '» стоит добавить к нему синонимом.');
+    }
+    return out;
+  }
+  function skillDraftList(name, al) {
+    var list = clone(SKILLS), ex = list.find(function (s) { return s.name === name; }), a = al.join(', ') || null;
+    if (ex) ex.aliases = a; else list.push({ skl_id: list.reduce(function (m, s) { return Math.max(m, s.skl_id); }, 0) + 1, name: name, aliases: a });
+    return list;
+  }
+  function updateSkillDraft() {
+    var name = $('s-name').value.trim(), al = $('s-aliases').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean);
+    var iss = checkSkill(name, al), impact = '';
+    if (name && !iss.some(function (x) { return x.level === 'error'; })) {
+      var users = testUsers(), keep = clone(SKILLS), before = runAll(users), after;
+      setArray(SKILLS, skillDraftList(name, al));
+      try { after = runAll(users); } finally { setArray(SKILLS, keep); }
+      var lines = diffRuns(before, after);
+      impact = '<li><span class="badge b-info">влияние</span> ' + (lines.length ? 'Изменятся результаты:<ul>' + lines.join('') + '</ul>' : 'Результаты тестовых пользователей не изменятся.') + '</li>';
+      if (lines.length) iss.push({ level: 'warn', text: 'Изменение справочника меняет результаты подбора, см. ниже.' });
+    }
+    $('s-issues').innerHTML = name ? issuesHtml(iss) + impact : '';
+    $('s-save').disabled = !name || iss.some(function (x) { return x.level === 'error'; });
+    $('s-save').textContent = SKILLS.some(function (s) { return s.name === name; }) ? 'Сохранить синонимы' : 'Добавить навык';
+  }
+
+  // ---------- Аудит всей базы ----------
+  function renderAudit() {
+    var rows = [], counts = { error: 0, warn: 0, info: 0 };
+    KNOWLEDGE.forEach(function (k) {
+      checkRule(k, KNOWLEDGE.filter(function (o) { return o.rul_id !== k.rul_id; })).forEach(function (x) { counts[x.level]++; rows.push({ id: 'K' + k.rul_id, x: x }); });
+    });
+    COMPARISONS.forEach(function (c) {
+      checkComparison(c, COMPARISONS.filter(function (o) { return o.rul_id !== c.rul_id; })).forEach(function (x) { counts[x.level]++; rows.push({ id: 'C' + c.rul_id, x: x }); });
+    });
+    var users = USERS, never = KNOWLEDGE.filter(function (k) {
+      try { return !users.some(function (u) { return allTrue(computeFacts(u), k.condition); }); } catch (e) { return false; }
+    });
+    var cover = KNOWLEDGE.length ? Math.round(100 * (KNOWLEDGE.length - never.length) / KNOWLEDGE.length) : 0;
+    $('kb-kpi').innerHTML = '<div><b>' + KNOWLEDGE.length + '</b>правил ЕСЛИ → ТО</div><div><b>' + COMPARISONS.length + '</b>поправок к баллу</div><div><b>' + SKILLS.length + '</b>навыков в справочнике</div>' +
+      '<div><b>' + counts.error + '</b>ошибок</div><div><b>' + counts.warn + '</b>замечаний</div>';
+    $('a-out').innerHTML = '<div class="kpi"><div><b>' + counts.error + '</b>ошибок</div><div><b>' + counts.warn + '</b>замечаний</div><div><b>' + counts.info + '</b>справок</div><div><b>' + cover + '%</b>правил срабатывает на тестовых данных</div></div>' +
+      (rows.length ? '<div class="scroll"><table><tr><th>Правило</th><th>Уровень</th><th>Замечание</th></tr>' + rows.map(function (r) {
+        var b = r.x.level === 'error' ? 'b-bad">ошибка' : r.x.level === 'warn' ? 'b-warn">внимание' : 'b-info">справка';
+        return '<tr><td><b>' + r.id + '</b></td><td><span class="badge ' + b + '</span></td><td>' + esc(r.x.text) + '</td></tr>';
+      }).join('') + '</table></div>' : '<div class="alert ok">Ошибок и противоречий в базе знаний не найдено.</div>') +
+      (never.length ? '<div class="alert info">Не сработали ни для одного тестового пользователя: ' + never.map(function (k) { return 'K' + k.rul_id; }).join(', ') + '. Это не ошибка, но такие правила стоит проверить на дополнительных примерах.</div>' : '');
+  }
+
+  // ---------- Экспорт ----------
+  var q = function (s) { return s == null ? 'NULL' : "'" + String(s).replace(/'/g, "''") + "'"; };
+  function exportSql() {
+    return '-- База знаний, выгруженная из редактора ' + new Date().toLocaleString('ru-RU') + '\n' +
+      'DELETE FROM KNOWLEDGE;\n' + (KNOWLEDGE.length ? 'INSERT INTO KNOWLEDGE (rul_id, name, `condition`, conclusion, priority, upd_by) VALUES\n' +
+      KNOWLEDGE.map(function (k) { return ' (' + k.rul_id + ', ' + q(k.name) + ', ' + q(k.condition) + ', ' + q(k.conclusion) + ', ' + k.priority + ', 1)'; }).join(',\n') + ';\n\n' : '\n') +
+      'DELETE FROM COMPARISONS;\n' + (COMPARISONS.length ? 'INSERT INTO COMPARISONS (rul_id, prof_id, cond_type, operator, value, action, upd_by) VALUES\n' +
+      COMPARISONS.map(function (c) { return ' (' + c.rul_id + ', ' + c.prof_id + ', ' + q(c.cond_type) + ', ' + q(c.operator) + ', ' + q(c.value) + ', ' + q(c.action) + ', 1)'; }).join(',\n') + ';\n\n' : '\n') +
+      (SKILLS.length ? '-- навыки не удаляются: на них ссылается таблица REQUIREMENTS\nINSERT INTO SKILLS (skl_id, name, type, aliases) VALUES\n' +
+      SKILLS.map(function (s) { return ' (' + s.skl_id + ', ' + q(s.name) + ', ' + q(s.type || 'hard') + ', ' + q(s.aliases) + ')'; }).join(',\n') +
+      '\nON DUPLICATE KEY UPDATE name = VALUES(name), aliases = VALUES(aliases);\n' : '');
+  }
+  function exportJs() {
+    return '// Скопируйте вместо одноимённых массивов в 2_knowledge_base.js\nconst SKILLS = ' + JSON.stringify(SKILLS, null, 2) +
+      ';\n\nconst COMPARISONS = ' + JSON.stringify(COMPARISONS, null, 2) + ';\n\nconst KNOWLEDGE = ' + JSON.stringify(KNOWLEDGE, null, 2) + ';\n';
+  }
+  function download(name, text, type) {
+    var a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([text], { type: type }));
+    a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(function () { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+  }
+  function renderExport() {
+    $('x-sql').textContent = exportSql(); $('x-js').textContent = exportJs();
+    $('x-log').innerHTML = changeLog.length ? '<ol>' + changeLog.map(function (h) { return '<li>' + esc(h.time) + ': ' + esc(h.text) + '</li>'; }).join('') + '</ol>' : '<p class="muted">Изменений пока не было.</p>';
+    $('kb-undo').disabled = !history.length;
+  }
+
+  function refreshAll() {
+    renderChips();
+    if (lastRun && !$('u-result').hidden) runUser();
+    renderRuleList(); renderCmp(); renderSkills(); renderAudit(); renderExport();
+    if (document.activeElement && document.activeElement.closest && document.activeElement.closest('#r-form-card')) return;
+    if (curId !== null && !KNOWLEDGE.some(function (k) { return k.rul_id === curId; })) curId = KNOWLEDGE.length ? KNOWLEDGE[0].rul_id : null;
+  }
+
+  // =====================================================================
+  // Подключение событий
+  // =====================================================================
+  function selectTab(name) {
+    ['user', 'editor'].forEach(function (t) {
+      $('tab-' + t).setAttribute('aria-selected', String(t === name));
+      $('pane-' + t).hidden = t !== name;
+    });
+    if (name === 'editor') { refreshAll(); updateDraft(); }
+    try { window.history.replaceState(null, '', '#' + name); } catch (e) { /* file:// */ }
+  }
+  $('tab-user').addEventListener('click', function () { selectTab('user'); });
+  ['tab-user', 'tab-editor'].forEach(function (id) {
+    $(id).addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'ArrowLeft') { var o = id === 'tab-user' ? 'editor' : 'user'; selectTab(o); $('tab-' + o).focus(); }
+    });
+  });
+  $('tab-editor').addEventListener('click', function () { selectTab('editor'); });
+  Array.prototype.forEach.call(document.querySelectorAll('[data-sub]'), function (b) {
+    b.addEventListener('click', function () {
+      var s = b.getAttribute('data-sub');
+      Array.prototype.forEach.call(document.querySelectorAll('[data-sub]'), function (x) { x.setAttribute('aria-selected', String(x === b)); });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-subpane]'), function (p) { p.hidden = p.getAttribute('data-subpane') !== s; });
+      if (s === 'audit') renderAudit();
+      if (s === 'export') renderExport();
+    });
+  });
+
+  // пользователь
+  Array.prototype.forEach.call(document.querySelectorAll('[data-preset]'), function (b) {
+    b.addEventListener('click', function () { setPreset(Number(b.getAttribute('data-preset'))); runUser(); });
+  });
+  $('u-clear').addEventListener('click', function () {
+    presetId = 0; chips = []; ['u-email', 'u-exp', 'u-sal', 'u-skill-in'].forEach(function (id) { $(id).value = ''; });
+    $('u-edu').value = 'bachelor'; renderChips(); showFieldErrors({}); $('u-result').hidden = true; $('u-status').textContent = '';
+  });
+  ['u-email', 'u-exp', 'u-sal', 'u-edu'].forEach(function (id) {
+    $(id).addEventListener('input', function () { presetId = 0; });
+    $(id).addEventListener('blur', function () {
+      var errs = fieldErrors(readProfile());
+      if ($(id).value === '' && id !== 'u-exp') { delete errs[{ 'u-email': 'email', 'u-sal': 'sal_min' }[id]]; }
+      showFieldErrors(errs);
+    });
+  });
+  $('u-skill-in').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' || e.key === ',') { e.preventDefault(); addChip(this.value); this.value = ''; }
+    else if (e.key === 'Backspace' && !this.value && chips.length) { chips.pop(); renderChips(); }
+  });
+  $('u-skill-in').addEventListener('input', showSkillSuggest);
+  $('u-form').addEventListener('submit', runUser);
+  $('u-save').addEventListener('click', function () {
+    if (!lastRun) return;
+    var j = store.get('cm_journal') || [];
+    var top = lastRun.res.rows.filter(function (r) { return r.rank_pos === 1; })[0];
+    j.push({ time: new Date().toLocaleString('ru-RU'), who: lastRun.user.email || 'без email', top: top ? top.title : 'нет подходящих',
+             count: lastRun.res.rows.filter(function (r) { return r.rank_pos !== null; }).length,
+             sql: toSql(lastRun.res.rows.map(function (r) { return Object.assign({}, r, { usr_id: lastRun.user.usr_id ? lastRun.user.usr_id : 'NULL' }); })) });
+    store.set('cm_journal', j.slice(-50)); renderJournal();
+    $('u-saved').textContent = 'Сохранено.';
+  });
+
+  // редактор: правила
+  $('r-new').addEventListener('click', function () { openRule(null); $('r-name').focus(); });
+  $('r-add-atom').addEventListener('click', function () { draftAtoms.push({ fact: 'has_skill', op: '=', val: SKILLS[0].name }); syncRaw(); renderAtoms(); updateDraft(); });
+  ['r-name', 'r-prio'].forEach(function (id) { $(id).addEventListener('input', function () { updateDraft(); }); });
+  ['r-kind', 'r-target'].forEach(function (id) { $(id).addEventListener('change', updateDraft); });
+  $('r-raw').addEventListener('input', function () {
+    try { draftAtoms = parseCondition(this.value); renderAtoms(); } catch (e) { /* ошибка покажется в проверке */ }
+    updateDraft();
+  });
+  $('r-save').addEventListener('click', saveRule);
+  $('r-cancel').addEventListener('click', function () { openRule(curId); });
+  $('r-del').addEventListener('click', deleteRule);
+
+  // редактор: поправки
+  ['c-prof', 'c-op', 'c-sign'].forEach(function (id) { $(id).addEventListener('change', updateCmpDraft); });
+  ['c-val', 'c-num'].forEach(function (id) { $(id).addEventListener('input', updateCmpDraft); });
+  $('c-add').addEventListener('click', function () {
+    var d = cmpDraft();
+    var p = PROFESSIONS.find(function (x) { return x.prof_id === d.prof_id; });
+    change('Добавлена поправка C' + d.rul_id + ' для ' + p.title + ': ' + humanAtom({ fact: d.cond_type, op: d.operator, val: d.value }) + ', ' + actHuman(d.action), function () { COMPARISONS.push(d); });
+    $('c-val').value = ''; $('c-num').value = ''; updateCmpDraft();
+  });
+
+  // редактор: навыки
+  ['s-name', 's-aliases'].forEach(function (id) { $(id).addEventListener('input', updateSkillDraft); });
+  $('s-save').addEventListener('click', function () {
+    var name = $('s-name').value.trim(), al = $('s-aliases').value.split(',').map(function (t) { return t.trim(); }).filter(Boolean).join(', ') || null;
+    var ex = SKILLS.find(function (s) { return s.name === name; });
+    change(ex ? 'Изменены синонимы навыка ' + name : 'Добавлен навык ' + name, function () {
+      if (ex) ex.aliases = al;
+      else SKILLS.push({ skl_id: SKILLS.reduce(function (m, s) { return Math.max(m, s.skl_id); }, 0) + 1, name: name, aliases: al });
+    });
+    $('s-name').value = ''; $('s-aliases').value = ''; updateSkillDraft(); renderChips();
+  });
+
+  // общие действия
+  $('kb-undo').addEventListener('click', function () {
+    var h = history.pop(); if (!h) return;
+    applySnap(h.before); changeLog.push({ time: new Date().toLocaleString('ru-RU'), text: 'Отменено: ' + h.text }); persist(); refreshAll(); openRule(KNOWLEDGE.some(function (k) { return k.rul_id === curId; }) ? curId : (KNOWLEDGE[0] ? KNOWLEDGE[0].rul_id : null));
+  });
+  $('kb-reset').addEventListener('click', function () {
+    if (!window.confirm('Вернуть исходную базу знаний? Изменения эксперта будут заменены, отменить можно кнопкой «Отменить последнее изменение».')) return;
+    change('Восстановлена исходная база знаний', function () { applySnap(ORIGINAL); });
+    openRule(KNOWLEDGE[0].rul_id);
+  });
+  $('x-sql-dl').addEventListener('click', function () { download('knowledge_base_export.sql', exportSql(), 'text/plain;charset=utf-8'); });
+  $('x-js-dl').addEventListener('click', function () { download('knowledge_base_export.js', exportJs(), 'text/javascript;charset=utf-8'); });
+
+  // старт
+  renderChips(); renderJournal(); openRule(KNOWLEDGE.length ? KNOWLEDGE[0].rul_id : null); refreshAll();
+  if (location.hash === '#editor') selectTab('editor');
+  window.CM = { checkRule: checkRule, checkComparison: checkComparison, checkSkill: checkSkill, region: region, implies: implies };
+})();
+
+</script>
+</body>
+</html>
